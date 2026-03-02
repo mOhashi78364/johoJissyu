@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情報の実習ページ</title>
+    <style>
+        /* * カラーパレット設定 
+         * 指定された配色を変数として定義しています。
+         */
+        :root {
+            --textColor: #374151;   /* 文字色 */
+            --mainColor: #2563EB;   /* メインカラー */
+            --subColor1: #DBEAFE;   /* サブカラー1 */
+            --subColor2: #1E3A8A;   /* サブカラー2 */
+            --baseColor: #F0F2F5;   /* ベースカラー */
+            /* --accentColor は使用しませんが、拡張用に残しておいても構いません */
+        }
+
+        /* 基本設定 */
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: var(--baseColor);
+            color: var(--textColor);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        /* ヘッダーデザイン */
+        header {
+            background-color: var(--mainColor);
+            color: white;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        header p {
+            margin: 0.5rem 0 0;
+            font-size: 0.9rem;
+            color: var(--subColor1);
+        }
+
+        /* メインコンテンツエリア */
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* グリッドレイアウト */
+        .grid-wrapper {
+            display: grid;
+            /* 画面幅に合わせて列数を自動調整 */
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* カードデザイン（統一デザイン） */
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            color: var(--textColor);
+            border-top: 4px solid var(--subColor2); /* すべてこの色で統一 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ホバー時の動き */
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .card-title {
+            color: var(--subColor2);
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .card-tag {
+            display: inline-block;
+            background-color: var(--subColor1);
+            color: var(--subColor2);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-weight: bold;
+        }
+
+        /* フッター */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 2rem;
+        }
+
+        /* スマホ向けの微調整 */
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.25rem; }
+            .container { margin-top: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>情報の実習ページ</h1>
+        <p>Informatics Study Portal</p>
+    </header>
+
+    <div class="container">
+        <div class="grid-wrapper">
+
+            <a href="./ikasamasugoroku/index.html" class="card">
+                <div class="card-content">
+                    <span class="card-title">実習01：すごろくで遊ぶ</span>
+                    <p class="card-desc">すごろく遊びを通して、不確実な事象の解釈を学ぶ。</p>
+                    <span class="card-tag">仮説検定</span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        &copy; Informatics I Class. All rights reserved.
+    </footer>
+
+</body>
+</html>
