@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5びょうを めざせ！</title>
+    <style>
+        body { font-family: sans-serif; background-color: #F0F2F5; text-align: center; margin: 0; padding: 20px; user-select: none; }
+        h1 { color: #2563EB; font-size: 2rem; }
+        .setup-box, .ready-box { background: white; padding: 20px; border-radius: 12px; max-width: 400px; margin: 40px auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        select { font-size: 1.5rem; padding: 10px; margin: 15px 0; width: 80%; }
+        .nav-btn { font-size: 1.5rem; padding: 10px 30px; background-color: #2563EB; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #game-screen, #ready-screen { display: none; }
+        #action-btn { width: 160px; height: 160px; background-color: #2563EB; color: white; border: none; border-radius: 50%; font-size: 2rem; cursor: pointer; font-weight: bold; margin: 20px auto; box-shadow: 0 6px 10px rgba(0,0,0,0.1); }
+        .records { background: white; max-width: 300px; margin: 15px auto; padding: 10px; border-radius: 8px; text-align: left; }
+        .hint-box { display: none; background: #FEF3C7; border: 3px dashed #F59E0B; padding: 15px; border-radius: 12px; max-width: 500px; margin: 20px auto; font-size: 1.3rem; font-weight: bold; }
+        .keyword-display { font-size: 2.2rem; color: #EF4444; font-weight: bold; background: white; border-radius: 8px; display: inline-block; padding: 5px 20px; margin-top: 10px; border: 2px solid #EF4444; }
+        #timer-display { font-size: 2.5rem; font-weight: bold; color: #333; margin: 10px 0; min-height: 40px; }
+    </style>
+</head>
+<body>
+
+    <div id="setup-screen" class="setup-box">
+        <h2>みんなどこの班（はん）かな？</h2>
+        <select id="group-select">
+            <option value="1">うさぎ班（はん）</option>
+            <option value="2">ひつじ班（はん）</option>
+            <option value="3">たぬき班（はん）</option>
+        </select>
+        <br>
+        <button class="nav-btn" onclick="startGame()">ゲームスタート！</button>
+    </div>
+
+    <div id="ready-screen" class="ready-box">
+        <h2 id="ready-title" style="color: #EF4444;">1人目の ばん！</h2>
+        <p>こうたいして じゅんびしてね！<br>じゅんびができたら ボタンを おそう！</p>
+        <button class="nav-btn" onclick="startAttempt()">じゅんびOK！</button>
+    </div>
+
+    <div id="game-screen">
+        <h1>5びょう ピッタリ！</h1>
+        <p>ボタンをおして、心の中で 5びょう数えて ストップ！</p>
+        <div id="timer-display">0.00</div>
+        <button id="action-btn">スタート</button>
+
+        <div class="records">
+            <div>⏱ 1人目：<span id="t1">-</span>びょう</div>
+            <div>⏱ 2人目：<span id="t2">-</span>びょう</div>
+            <div>⏱ 3人目：<span id="t3">-</span>びょう</div>
+        </div>
+
+        <div id="hint" class="hint-box">
+            🎉ゲームクリア！大せいこう！<br>
+            <span style="font-size:1.1rem; color:#555;">※この文字を かみに メモしよう！</span><br>
+            ひみつの文字： <div id="key-char" class="keyword-display"></div><br><br>
+            つぎの QRコードの <ruby>場所<rt>ばしょ</rt></ruby>：<br>
+            <span style="color: #D97706;" id="hint-text"></span>
+        </div>
+        <div id="fail-box" style="display:none; margin-top:15px;">
+            ❌だれも 5びょうの おちかづき（4.7〜5.3）になれなかった！<br>
+            <button class="nav-btn" onclick="location.reload()" style="font-size:1.1rem; padding:5px 15px;">もう一度3人でやる</button>
+        </div>
+    </div>
+
+    <script>
+        const routeData = {
+            "1": { hint: "図書館の 出入り口（ドア）の ちかくにある ホワイトボードだ！", char: "ん" },
+            "2": { hint: "「世界の 国（せかいの くに）」の 本が ある たなを さがしてみてね！", char: "む" },
+            "3": { hint: "「図鑑（ずかん）」が ならんでいる たなの、いちばん 下の段（だん）だ！" , char: "ま" }
+        };
+
+        let selectedGroup = "1";
+        let attempt = 1;
+        let startTime;
+        let isRunning = false;
+        let scores = [];
+
+        const btn = document.getElementById('action-btn');
+        const display = document.getElementById('timer-display');
+
+        function startGame() {
+            selectedGroup = document.getElementById('group-select').value;
+            document.getElementById('setup-screen').style.display = 'none';
+            showReadyScreen();
+        }
+
+        function showReadyScreen() {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('ready-screen').style.display = 'block';
+            document.getElementById('ready-title').textContent = `${attempt}人目の ばん！`;
+        }
+
+        function startAttempt() {
+            document.getElementById('ready-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            display.textContent = "0.00";
+            btn.textContent = "スタート";
+            btn.style.backgroundColor = "#2563EB";
+            isRunning = false;
+        }
+
+        btn.addEventListener('click', () => {
+            if (attempt > 3) return;
+
+            if (!isRunning) {
+                isRunning = true;
+                btn.textContent = "ストップ！";
+                btn.style.backgroundColor = "#EF4444";
+                startTime = Date.now();
+                display.textContent = "???";
+            } else {
+                isRunning = false;
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+                display.textContent = elapsed + " びょう";
+                document.getElementById('t' + attempt).textContent = elapsed;
+                scores.push(parseFloat(elapsed));
+
+                attempt++;
+                setTimeout(() => {
+                    if (attempt <= 3) {
+                        showReadyScreen();
+                    } else {
+                        // 3回終了後に判定
+                        checkFinalResults();
+                    }
+                }, 1500);
+            }
+        });
+
+        function checkFinalResults() {
+            // 3人のうち1人でも4.70〜5.30秒(±0.3秒)があればクリア
+            let success = scores.some(score => Math.abs(score - 5.0) <= 0.30);
+            
+            if (success) {
+                document.getElementById('hint-text').textContent = routeData[selectedGroup].hint;
+                document.getElementById('key-char').textContent = routeData[selectedGroup].char;
+                document.getElementById('hint').style.display = 'block';
+                btn.disabled = true;
+            } else {
+                document.getElementById('fail-box').style.display = 'block';
+                btn.disabled = true;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ばくだんタイムアタック</title>
+    <style>
+        body { font-family: sans-serif; background-color: #F0F2F5; text-align: center; margin: 0; padding: 20px; user-select: none; }
+        h1 { color: #2563EB; font-size: 2rem; }
+        .setup-box, .ready-box { background: white; padding: 20px; border-radius: 12px; max-width: 400px; margin: 40px auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        select { font-size: 1.5rem; padding: 10px; margin: 15px 0; width: 80%; }
+        .nav-btn { font-size: 1.5rem; padding: 10px 30px; background-color: #2563EB; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #game-screen, #ready-screen { display: none; }
+        #bomb-btn { width: 150px; height: 150px; background-color: #1F2937; border: 8px solid #EF4444; border-radius: 50%; font-size: 4rem; cursor: pointer; margin: 20px auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 12px rgba(0,0,0,0.2); }
+        #bomb-btn:active { transform: scale(0.95); }
+        .records { background: white; max-width: 300px; margin: 15px auto; padding: 10px; border-radius: 8px; text-align: left; }
+        .hint-box { display: none; background: #FEF3C7; border: 3px dashed #F59E0B; padding: 15px; border-radius: 12px; max-width: 500px; margin: 20px auto; font-size: 1.3rem; font-weight: bold; }
+        .keyword-display { font-size: 2.2rem; color: #EF4444; font-weight: bold; background: white; border-radius: 8px; display: inline-block; padding: 5px 20px; margin-top: 10px; border: 2px solid #EF4444; }
+        #result { font-size: 1.6rem; font-weight: bold; margin-top: 10px; color: #2563EB; }
+    </style>
+</head>
+<body>
+
+    <div id="setup-screen" class="setup-box">
+        <h2>みんなどこの班（はん）かな？</h2>
+        <select id="group-select">
+            <option value="1">うさぎ班（はん）</option>
+            <option value="2">ひつじ班（はん）</option>
+            <option value="3">たぬき班（はん）</option>
+        </select>
+        <br>
+        <button class="nav-btn" onclick="startGame()">ゲームスタート！</button>
+    </div>
+
+    <div id="ready-screen" class="ready-box">
+        <h2 id="ready-title" style="color: #EF4444;">1人目の ばん！</h2>
+        <p>タブレットを 次の人に こうたい してね。<br>じゅんびができたら ボタンを おそう！</p>
+        <button class="nav-btn" onclick="startAttempt()">スタート！</button>
+    </div>
+
+    <div id="game-screen">
+        <h1>ばくだん タイムアタック！</h1>
+        <p><b>3.0びょう より はやく</b> 15回タップできたら クリア！</p>
+        <div id="bomb-btn">💣</div>
+        <div style="font-size: 1.3rem;">あと <span id="count-num" style="font-size: 2rem; color:#EF4444; font-weight:bold;">15</span> 回！</div>
+        <div id="result">1打目で スタート！</div>
+
+        <div class="records">
+            <div>⏱ 1人目：<span id="t1">-</span>びょう</div>
+            <div>⏱ 2人目：<span id="t2">-</span>びょう</div>
+            <div>⏱ 3人目：<span id="t3">-</span>びょう</div>
+        </div>
+
+        <div id="hint" class="hint-box">
+            🎉目標（もくひょう）クリア！すごい！<br>
+            <span style="font-size:1.1rem; color:#555;">※この文字を かみに メモしよう！</span><br>
+            ひみつの文字： <div id="key-char" class="keyword-display"></div><br><br>
+            つぎの QRコードの <ruby>場所<rt>ばしょ</rt></ruby>：<br>
+            <span style="color: #D97706;" id="hint-text"></span>
+        </div>
+        <div id="fail-box" style="display:none; margin-top:15px;">
+            ❌誰も 3.0びょう より はやく タップできなかった！<br>
+            <button class="nav-btn" onclick="location.reload()" style="font-size:1.1rem; padding:5px 15px;">もう一度3人でやる</button>
+        </div>
+    </div>
+
+    <script>
+        const routeData = {
+            "1": { hint: "「日本の れきし」の 本が おいてある たなを さがそう！", char: "く" },
+            "2": { hint: "「ちきゅう」や「うちゅう」の 図鑑（ずかん）の ちかくに あるよ！", char: "た" },
+            "3": { hint: "「世界の 国（せかいの くに）」の 本が ある たなを さがしてみてね！" , char: "ず" }
+        };
+
+        const goalTime = 3.0; // ★目標タイムを3秒に設定
+        let selectedGroup = "1";
+        let attempt = 1;
+        let clicksLeft = 15;
+        let startTime;
+        let isRunning = false;
+        let scores = []; // 全員のスコアを貯める配列
+        let isAcceptingInput = false;
+
+        const bombBtn = document.getElementById('bomb-btn');
+        const countNum = document.getElementById('count-num');
+        const result = document.getElementById('result');
+
+        function startGame() {
+            selectedGroup = document.getElementById('group-select').value;
+            document.getElementById('setup-screen').style.display = 'none';
+            showReadyScreen();
+        }
+
+        function showReadyScreen() {
+            isAcceptingInput = false;
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('ready-screen').style.display = 'block';
+            document.getElementById('ready-title').textContent = `${attempt}人目の ばん！`;
+        }
+
+        function startAttempt() {
+            document.getElementById('ready-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            clicksLeft = 15;
+            countNum.textContent = clicksLeft;
+            result.textContent = "たたけーーー！";
+            isRunning = false;
+            setTimeout(() => { isAcceptingInput = true; }, 300);
+        }
+
+        function handleHit(e) {
+            e.preventDefault();
+            if (!isAcceptingInput || attempt > 3 || clicksLeft <= 0) return;
+
+            if (!isRunning) {
+                isRunning = true;
+                startTime = Date.now();
+            }
+
+            clicksLeft--;
+            countNum.textContent = clicksLeft;
+
+            if (clicksLeft === 0) {
+                isAcceptingInput = false;
+                isRunning = false;
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+                document.getElementById('t' + attempt).textContent = elapsed;
+                scores.push(parseFloat(elapsed)); // スコアを記録
+
+                attempt++;
+                setTimeout(() => {
+                    if (attempt <= 3) {
+                        showReadyScreen(); // ★クリアタイムが出ても関係なく、3人目まで交代画面を出す
+                    } else {
+                        checkFinalResults(); // 3人全員終わったら最終判定
+                    }
+                }, 1200);
+            }
+        }
+
+        function checkFinalResults() {
+            // 3人のうち1人でも3.0秒以内があればクリア
+            let success = scores.some(score => score <= goalTime);
+            
+            if (success) {
+                result.innerHTML = `⭕️ だれかが 3秒以内を たっせい！`;
+                document.getElementById('hint-text').textContent = routeData[selectedGroup].hint;
+                document.getElementById('key-char').textContent = routeData[selectedGroup].char;
+                document.getElementById('hint').style.display = 'block';
+            } else {
+                document.getElementById('fail-box').style.display = 'block';
+                result.textContent = "しんさ けっか…";
+            }
+        }
+
+        bombBtn.addEventListener('touchstart', handleHit);
+        bombBtn.addEventListener('mousedown', handleHit);
+    </script>
+</body>
+</html>

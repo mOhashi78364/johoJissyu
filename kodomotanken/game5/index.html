@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>いろタッチ</title>
+    <style>
+        body { font-family: sans-serif; background-color: #F0F2F5; text-align: center; margin: 0; padding: 20px; }
+        h1 { color: #2563EB; font-size: 2rem; }
+        .setup-box, .ready-box { background: white; padding: 20px; border-radius: 12px; max-width: 400px; margin: 40px auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        select { font-size: 1.5rem; padding: 10px; margin: 15px 0; width: 80%; }
+        .nav-btn { font-size: 1.5rem; padding: 10px 30px; background-color: #2563EB; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #game-screen, #ready-screen { display: none; }
+        #color-circle { width: 140px; height: 140px; border-radius: 50%; margin: 20px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        #touch-btn { font-size: 1.8rem; padding: 15px 40px; background-color: #2563EB; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .hint-box { display: none; background: #FEF3C7; border: 3px dashed #F59E0B; padding: 15px; border-radius: 12px; max-width: 500px; margin: 20px auto; font-size: 1.3rem; font-weight: bold; }
+        .keyword-display { font-size: 2.2rem; color: #EF4444; font-weight: bold; background: white; border-radius: 8px; display: inline-block; padding: 5px 20px; margin-top: 10px; border: 2px solid #EF4444; }
+        #result { font-size: 1.8rem; font-weight: bold; margin-top: 15px; min-height: 40px; }
+    </style>
+</head>
+<body>
+
+    <div id="setup-screen" class="setup-box">
+        <h2>みんなどこの班（はん）かな？</h2>
+        <select id="group-select">
+            <option value="1">うさぎ班（はん）</option>
+            <option value="2">ひつじ班（はん）</option>
+            <option value="3">たぬき班（はん）</option>
+        </select>
+        <br>
+        <button class="nav-btn" onclick="startGame()">ゲームスタート！</button>
+    </div>
+
+    <div id="ready-screen" class="ready-box">
+        <h2 id="ready-title" style="color: #EF4444;">1回目の チャレンジ！</h2>
+        <p>こうたいして じゅんびしてね！<br>じゅんびができたら ボタンを おそう！</p>
+        <button class="nav-btn" onclick="startRound()">スタート！</button>
+    </div>
+
+    <div id="game-screen">
+        <h1>あおで タッチ！</h1>
+        <p>3人で 合計（ごうけい）3回 成功したら クリアだよ！ （いま <span id="stage-num" style="color:#EF4444; font-size:1.8rem; font-weight:bold;">1</span> / 3 回目）</p>
+        <div id="color-circle"></div>
+        <button id="touch-btn">いまおす！</button>
+        <div id="result"></div>
+
+        <div id="hint" class="hint-box">
+            🎉ぜんぶの ミニゲームを クリアしたよ！<br>
+            <span style="font-size:1.1rem; color:#555;">※さいごの文字を メモしよう！</span><br>
+            ひみつの文字： <div id="key-char" class="keyword-display"></div><br><br>
+            👑【さいごの ゴール】👑：<br>
+            <span style="color: #D97706;" id="hint-text"></span>
+        </div>
+    </div>
+
+    <script>
+        const routeData = {
+            "1": { hint: "あつめた 5つの 文字を ならべかえて、かわいい『くだもの』の 言葉にしよう！分かったら 受付（うけつけ）の 先生に おしえてね！", char: "ぼ" },
+            "2": { hint: "あつめた 5つの 文字を ならべかえて、むしさんの 言葉にしよう！分かったら 受付（うけつけ）の 先生に おしえてね！", char: "り" },
+            "3": { hint: "あつめた 5つの 文字を ならべかえて、雨の日に 地面（じめん）に できる『お水の たまり』の 言葉にしよう！分かったら 先生に おしえてね！", char: "り" }
+        };
+
+        let selectedGroup = "1";
+        const circle = document.getElementById('color-circle');
+        const result = document.getElementById('result');
+        const stageText = document.getElementById('stage-num');
+        const colors = ['#EF4444', '#F59E0B', '#10B981', '#2563EB']; 
+        let currentColorIndex = 0;
+        let countSuccess = 0;
+        let timer;
+        let isScreenActive = false;
+
+        function startGame() {
+            selectedGroup = document.getElementById('group-select').value;
+            document.getElementById('setup-screen').style.display = 'none';
+            showReadyScreen();
+        }
+
+        function showReadyScreen() {
+            isScreenActive = false;
+            clearTimeout(timer);
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('ready-screen').style.display = 'block';
+            document.getElementById('ready-title').textContent = `${countSuccess + 1}回目の チャレンジ！`;
+        }
+
+        function startRound() {
+            document.getElementById('ready-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            stageText.textContent = countSuccess + 1;
+            result.textContent = "";
+            isScreenActive = true;
+            changeColor();
+        }
+
+        function changeColor() {
+            if (!isScreenActive || countSuccess >= 3) return;
+            currentColorIndex = Math.floor(Math.random() * colors.length);
+            circle.style.backgroundColor = colors[currentColorIndex];
+            
+            // ★ランダムな交代時間の最小値を 600ms 〜 最大 1400ms に設定
+            let randomTime = Math.floor(Math.random() * 800) + 600;
+            timer = setTimeout(changeColor, randomTime); 
+        }
+
+        document.getElementById('touch-btn').addEventListener('click', () => {
+            if (!isScreenActive || countSuccess >= 3) return;
+
+            if (colors[currentColorIndex] === '#2563EB') {
+                countSuccess++; // ★失敗してもリセットせず、カウントを足し算するだけに変更
+                result.innerHTML = '<span style="color: #10B981;">⭕️ ナイス！</span>';
+                isScreenActive = false;
+                clearTimeout(timer);
+                
+                if(countSuccess === 3) {
+                    stageText.textContent = "3";
+                    document.getElementById('hint-text').textContent = routeData[selectedGroup].hint;
+                    document.getElementById('key-char').textContent = routeData[selectedGroup].char;
+                    document.getElementById('hint').style.display = 'block';
+                } else {
+                    setTimeout(() => { showReadyScreen(); }, 1000);
+                }
+            } else {
+                result.innerHTML = '<span style="color: #EF4444;">❌ あおじゃなかった！もういちど 交代してチャレンジ！</span>';
+                isScreenActive = false;
+                clearTimeout(timer);
+                setTimeout(() => { showReadyScreen(); }, 1500);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>どっちが おおい？</title>
+    <style>
+        body { font-family: sans-serif; background-color: #F0F2F5; text-align: center; margin: 0; padding: 20px; color: #333; }
+        h1 { color: #2563EB; font-size: 2rem; }
+        .setup-box { background: white; padding: 20px; border-radius: 12px; max-width: 400px; margin: 40px auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        select { font-size: 1.5rem; padding: 10px; margin: 15px 0; width: 80%; }
+        #start-game-btn { font-size: 1.5rem; padding: 10px 30px; background-color: #2563EB; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #game-screen { display: none; }
+        .container { display: flex; justify-content: space-around; margin: 20px 0; }
+        .area { width: 45%; height: 240px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); padding: 10px; box-sizing: border-box; justify-items: center; align-items: center; }
+        .dot-wrapper { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .dot { background-color: #3B82F6; border-radius: 50%; opacity: 0.8; }
+        .area-b .dot { background-color: #EF4444; }
+        .btn-container { display: flex; justify-content: space-around; max-width: 500px; margin: 0 auto; }
+        button { font-size: 1.5rem; padding: 15px 40px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; width: 45%; }
+        #btn-left { background-color: #3B82F6; }
+        #btn-right { background-color: #EF4444; }
+        .hint-box { display: none; background: #FEF3C7; border: 3px dashed #F59E0B; padding: 15px; border-radius: 12px; max-width: 500px; margin: 20px auto; font-size: 1.3rem; font-weight: bold; }
+        .keyword-display { font-size: 2.2rem; color: #EF4444; font-weight: bold; background: white; border-radius: 8px; display: inline-block; padding: 5px 20px; margin-top: 10px; border: 2px solid #EF4444; }
+        #result { font-size: 1.8rem; font-weight: bold; margin-top: 15px; min-height: 40px; }
+    </style>
+</head>
+<body>
+
+    <div id="setup-screen" class="setup-box">
+        <h2>みんなどこの班（はん）かな？</h2>
+        <select id="group-select">
+            <option value="1">うさぎ班（はん）</option>
+            <option value="2">ひつじ班（はん）</option>
+            <option value="3">たぬき班（はん）</option>
+        </select>
+        <br>
+        <button id="start-game-btn" onclick="startGame()">ゲームスタート！</button>
+    </div>
+
+    <div id="game-screen">
+        <h1>どっちが <ruby>多<rt>おお</rt></ruby>い？</h1>
+        <p>大きさが バラバラだよ！だまされずに よく <ruby>数<rt>かぞ</rt></ruby>えてね！</p>
+
+        <div class="container">
+            <div id="left-area" class="area"></div>
+            <div id="right-area" class="area-b area"></div>
+        </div>
+
+        <div class="btn-container">
+            <button id="btn-left">ひだり！</button>
+            <button id="btn-right">みぎ！</button>
+        </div>
+
+        <div id="result"></div>
+
+        <div id="hint" class="hint-box">
+            🎉クリアおめでとう！<br>
+            <span style="font-size:1.1rem; color:#555;">※この文字を かみに メモしよう！</span><br>
+            ひみつの文字： <div id="key-char" class="keyword-display"></div><br><br>
+            つぎの QRコードの <ruby>場所<rt>ばしょ</rt></ruby>：<br>
+            <span style="color: #D97706;" id="hint-text"></span>
+        </div>
+    </div>
+
+    <script>
+        const routeData = {
+            "1": { hint: "「えほん」の コーナーの、ちいさい いすの したを さがせ！", char: "さ" },
+            "2": { hint: "「図鑑（ずかん）」が ならんでいる たなの、いちばん 下の段（だん）だ！", char: "か" },
+            "3": { hint: "カウンターの 近くにある「お勧め（すすめ）の本」の たなを 見てみよう！", char: "み" }
+        };
+
+        let selectedGroup = "1";
+        const leftArea = document.getElementById('left-area');
+        const rightArea = document.getElementById('right-area');
+        const result = document.getElementById('result');
+
+        // ★差が「必ず3個」になるように計算
+        let baseCount = Math.floor(Math.random() * 6) + 12; // 多い方は12~17個
+        let leftCount, rightCount;
+        if (Math.random() < 0.5) {
+            leftCount = baseCount;
+            rightCount = baseCount - 3; // 差は3個
+        } else {
+            rightCount = baseCount;
+            leftCount = baseCount - 3; // 差は3個
+        }
+
+        function startGame() {
+            selectedGroup = document.getElementById('group-select').value;
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            
+            createDots(leftArea, leftCount);
+            createDots(rightArea, rightCount);
+        }
+
+        function createDots(area, count) {
+            let indices = Array.from({length: 25}, (_, i) => i);
+            indices.sort(() => Math.random() - 0.5);
+
+            for(let i=0; i<25; i++) {
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('dot-wrapper');
+                area.appendChild(wrapper);
+            }
+
+            for(let i=0; i<count; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('dot');
+                const size = Math.floor(Math.random() * 21) + 12;
+                dot.style.width = size + 'px';
+                dot.style.height = size + 'px';
+                area.children[indices[i]].appendChild(dot);
+            }
+        }
+
+        function checkAnswer(answer) {
+            if ((leftCount > rightCount && answer === 'left') || (rightCount > leftCount && answer === 'right')) {
+                result.innerHTML = '<span style="color: #10B981;">⭕️ せいかい！</span>';
+                document.getElementById('hint-text').textContent = routeData[selectedGroup].hint;
+                document.getElementById('key-char').textContent = routeData[selectedGroup].char;
+                document.getElementById('hint').style.display = 'block';
+                document.getElementById('btn-left').disabled = true;
+                document.getElementById('btn-right').disabled = true;
+            } else {
+                result.innerHTML = '<span style="color: #EF4444;">❌ ひっかかった！もういちど 数えてみてね！</span>';
+            }
+        }
+
+        document.getElementById('btn-left').addEventListener('click', () => checkAnswer('left'));
+        document.getElementById('btn-right').addEventListener('click', () => checkAnswer('right'));
+    </script>
+</body>
+</html>

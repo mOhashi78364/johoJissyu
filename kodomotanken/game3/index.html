@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大と犬 まちがいさがし</title>
+    <style>
+        body { font-family: sans-serif; background-color: #F0F2F5; text-align: center; margin: 0; padding: 10px; }
+        h1 { color: #2563EB; font-size: 1.8rem; margin: 5px; }
+        .setup-box, .ready-box { background: white; padding: 20px; border-radius: 12px; max-width: 400px; margin: 40px auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        select { font-size: 1.5rem; padding: 10px; margin: 15px 0; width: 80%; }
+        .nav-btn { font-size: 1.5rem; padding: 10px 30px; background-color: #2563EB; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #game-screen, #ready-screen { display: none; }
+        .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; max-width: 460px; margin: 10px auto; background: white; padding: 8px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .char { font-size: 1.6rem; cursor: pointer; user-select: none; padding: 2px; border-radius: 4px; font-weight: bold; }
+        .hint-box { display: none; background: #FEF3C7; border: 3px dashed #F59E0B; padding: 15px; border-radius: 12px; max-width: 500px; margin: 20px auto; font-size: 1.3rem; font-weight: bold; }
+        .keyword-display { font-size: 2.2rem; color: #EF4444; font-weight: bold; background: white; border-radius: 8px; display: inline-block; padding: 5px 20px; margin-top: 10px; border: 2px solid #EF4444; }
+        #result { font-size: 1.5rem; font-weight: bold; min-height: 30px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="setup-screen" class="setup-box">
+        <h2>みんなどこの班（はん）かな？</h2>
+        <select id="group-select">
+            <option value="1">うさぎ班（はん）</option>
+            <option value="2">ひつじ班（はん）</option>
+            <option value="3">たぬき班（はん）</option>
+        </select>
+        <br>
+        <button class="nav-btn" onclick="startGame()">ゲームスタート！</button>
+    </div>
+
+    <div id="ready-screen" class="ready-box">
+        <h2 id="ready-title" style="color: #EF4444;">1回目の チャレンジ！</h2>
+        <p>こうたいして あそんでね！<br>じゅんびができたら ボタンを おそう！</p>
+        <button class="nav-btn" onclick="startRound()">スタート！</button>
+    </div>
+
+    <div id="game-screen">
+        <h1>「大」の中に「犬」が1つ！</h1>
+        <p style="margin:2px;">100文字の中から「犬」をさがしてね！ （いま <span id="stage-num" style="color:#EF4444; font-weight:bold;">1</span> / 3 回目）</p>
+        <div class="grid" id="stage"></div>
+        <div id="result"></div>
+
+        <div id="hint" class="hint-box">
+            🎉3回連続（れんぞく）クリア！すごい！<br>
+            <span style="font-size:1.1rem; color:#555;">※この文字を かみに メモしよう！</span><br>
+            ひみつの文字： <div id="key-char" class="keyword-display"></div><br><br>
+            つぎの QRコードの <ruby>場所<rt>ばしょ</rt></ruby>：<br>
+            <span style="color: #D97706;" id="hint-text"></span>
+        </div>
+    </div>
+
+    <script>
+        const routeData = {
+            "1": { hint: "「地球（ちきゅう）」の 図鑑（ずかん）が ある たなを さがそう！", char: "ら" },
+            "2": { hint: "図書館の 出入り口（ドア）の ちかくにある ホワイトボードだ！", char: "つ" },
+            "3": { hint: "「えほん」の コーナーの、ちいさい いすの したを さがせ！" , char: "た" }
+        };
+
+        let selectedGroup = "1";
+        let currentStage = 1;
+        const stageContainer = document.getElementById('stage');
+        const result = document.getElementById('result');
+        const stageNumText = document.getElementById('stage-num');
+
+        function startGame() {
+            selectedGroup = document.getElementById('group-select').value;
+            document.getElementById('setup-screen').style.display = 'none';
+            showReadyScreen();
+        }
+
+        function showReadyScreen() {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('ready-screen').style.display = 'block';
+            document.getElementById('ready-title').textContent = `${currentStage}回目の チャレンジ！`;
+        }
+
+        function startRound() {
+            document.getElementById('ready-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            stageNumText.textContent = currentStage;
+            result.textContent = "";
+            buildStage();
+        }
+
+        function buildStage() {
+            stageContainer.innerHTML = "";
+            const size = 100; // 10x10に増量
+            const wrongIndex = Math.floor(Math.random() * size);
+
+            for (let i = 0; i < size; i++) {
+                const span = document.createElement('div');
+                span.classList.add('char');
+                if (i === wrongIndex) {
+                    span.textContent = "犬";
+                    span.addEventListener('click', () => nextRound());
+                } else {
+                    span.textContent = "大";
+                    span.addEventListener('click', () => {
+                        result.innerHTML = '<span style="color: #EF4444;">❌ それは「大（おおきい）」だよ！</span>';
+                    });
+                }
+                stageContainer.appendChild(span);
+            }
+        }
+
+        function nextRound() {
+            result.innerHTML = '<span style="color: #10B981;">⭕️ せいかい！</span>';
+            if (currentStage < 3) {
+                currentStage++;
+                setTimeout(() => { showReadyScreen(); }, 1000);
+            } else {
+                stageContainer.innerHTML = "✨✨✨";
+                document.getElementById('hint-text').textContent = routeData[selectedGroup].hint;
+                document.getElementById('key-char').textContent = routeData[selectedGroup].char;
+                document.getElementById('hint').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
