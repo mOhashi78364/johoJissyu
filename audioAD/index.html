@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>音のデジタル表現体験</title>
+    <style>
+        :root {
+            --text-color: #374151;
+            --main-color: #2563EB;
+            --sub-color1: #DBEAFE;
+            --sub-color2: #1E3A8A;
+            --unemphasized: #9CA3AF;
+            --accent-color: #EF4444;
+            --icon-color: #646565;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            text-align: center;
+            background-color: var(--sub-color1);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+            background: #ffffff;
+            border-top: 8px solid var(--main-color);
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.1);
+            border-radius: 12px;
+        }
+        h2 {
+            color: var(--sub-color2);
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        canvas {
+            background: #ffffff;
+            border: 2px solid var(--unemphasized);
+            border-radius: 8px;
+            margin: 15px 0;
+            cursor: crosshair;
+            width: 100%;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .control-group {
+            background: var(--sub-color1);
+            padding: 15px 25px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--main-color);
+        }
+        button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid var(--main-color);
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+        }
+        button:hover:not(:disabled) { 
+            background-color: var(--sub-color1); 
+            border-color: var(--sub-color2);
+            color: var(--sub-color2);
+        }
+        button:disabled { 
+            border-color: var(--unemphasized);
+            background-color: #f9fafb;
+            color: var(--unemphasized);
+            cursor: not-allowed; 
+        }
+        svg { 
+            fill: var(--icon-color);
+        }
+        .ratio-display {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-top: 5px;
+        }
+        select {
+            padding: 8px;
+            font-size: 15px;
+            color: var(--text-color);
+            border: 1px solid var(--unemphasized);
+            border-radius: 6px;
+            background-color: #ffffff;
+            margin-top: 5px;
+        }
+        select:disabled {
+            background-color: #f9fafb;
+            color: var(--unemphasized);
+            cursor: not-allowed;
+        }
+        .guide-text {
+            font-size: 14px;
+            color: var(--text-color);
+            background-color: var(--sub-color1);
+            padding: 10px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>音のデジタル表現体験</h2>
+    
+    <div class="controls">
+        <button id="btnPlay" disabled>
+            <svg width="20" height="20" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            再生
+        </button>
+        <button id="btnStop" disabled>
+            <svg width="20" height="20" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+            停止
+        </button>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>量子化ビット数: <br>
+                <select id="bitDepth">
+                    <option value="16">16ビット (標準)</option>
+                    <option value="8">8ビット</option>
+                    <option value="4">4ビット</option>
+                </select>
+            </label>
+        </div>
+        <div class="control-group">
+            <label>標本化周波数: <br>
+                <select id="sampleRate">
+                    <option value="1">44.1kHz (標準)</option>
+                    <option value="0.5">1/2 (22.05kHz)</option>
+                    <option value="0.25">1/4 (11.025kHz)</option>
+                    <option value="0.125">1/8 (5.5125kHz)</option>
+                </select>
+            </label>
+        </div>
+        <div class="control-group">
+            <div>ファイルサイズは元データの</div>
+            <div class="ratio-display">約 <span id="fileSizeRatio">1</span> 分の 1</div>
+        </div>
+    </div>
+
+    <p id="status" style="font-weight: bold; color: var(--main-color);">音声ファイルを読み込んでいます...</p>
+    <p class="guide-text">💡 波形上を<strong>ドラッグ＆ドロップ</strong>して拡大（<strong>ダブルクリック</strong>で元に戻す）</p>
+    <canvas id="waveform" width="760" height="200"></canvas>
+</div>
+
+<script>
+    let audioCtx;
+    let originalBuffer = null;
+    let processedBuffer = null;
+    let sourceNode = null;
+    let isPlaying = false;
+
+    const canvas = document.getElementById('waveform');
+    const canvasCtx = canvas.getContext('2d');
+    const ratioDisplay = document.getElementById('fileSizeRatio');
+
+    let startIndex = 0;
+    let endIndex = 0;
+
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragCurrentX = 0;
+
+    window.onload = async () => {
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            const response = await fetch('sample.mp3');
+            if (!response.ok) throw new Error("File not found");
+            const arrayBuffer = await response.arrayBuffer();
+            originalBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            
+            startIndex = 0;
+            endIndex = originalBuffer.length;
+
+            processAudio();
+            document.getElementById('btnPlay').disabled = false;
+            document.getElementById('status').innerText = '準備完了！設定を変更して音や波形を確認しましょう。';
+            document.getElementById('status').style.color = "var(--sub-color2)";
+        } catch (e) {
+            document.getElementById('status').innerText = 'エラー: sample.mp3が見つかりません。同じフォルダに配置し、ローカルサーバー経由で開いてください。';
+            document.getElementById('status').style.color = "var(--accent-color)";
+        }
+    };
+
+    function processAudio() {
+        if (!originalBuffer) return;
+
+        const bitDepth = parseInt(document.getElementById('bitDepth').value);
+        const rateMultiplier = parseFloat(document.getElementById('sampleRate').value);
+        
+        // ファイルサイズの比率は ビット数と周波数の掛け合わせで決まる
+        const ratio = (16 / bitDepth) * (1 / rateMultiplier);
+        ratioDisplay.innerText = ratio;
+
+        const channels = originalBuffer.numberOfChannels;
+        const length = originalBuffer.length;
+        const sampleRate = originalBuffer.sampleRate;
+        
+        processedBuffer = audioCtx.createBuffer(channels, length, sampleRate);
+        
+        const step = Math.round(1 / rateMultiplier);
+        const levels = Math.pow(2, bitDepth);
+
+        for (let c = 0; c < channels; c++) {
+            const inputData = originalBuffer.getChannelData(c);
+            const outputData = processedBuffer.getChannelData(c);
+            
+            for (let i = 0; i < length; i++) {
+                const index = i - (i % step);
+                let val = inputData[index] || 0;
+                val = Math.round(val * levels) / levels;
+                outputData[i] = val;
+            }
+        }
+        drawWaveform();
+    }
+
+    function drawWaveform() {
+        if (!processedBuffer) return;
+        
+        const data = processedBuffer.getChannelData(0);
+        const width = canvas.width;
+        const height = canvas.height;
+        
+        let visibleLength = endIndex - startIndex;
+        if (visibleLength <= 0) {
+            startIndex = 0;
+            endIndex = data.length;
+            visibleLength = data.length;
+        }
+
+        canvasCtx.clearRect(0, 0, width, height);
+        
+        const centerY = height / 2;
+        canvasCtx.beginPath();
+        canvasCtx.strokeStyle = 'var(--unemphasized)';
+        canvasCtx.lineWidth = 1;
+        canvasCtx.moveTo(0, centerY);
+        canvasCtx.lineTo(width, centerY);
+        canvasCtx.stroke();
+
+        canvasCtx.beginPath();
+        canvasCtx.strokeStyle = 'var(--main-color)';
+        canvasCtx.lineWidth = 1.5;
+        
+        for (let i = 0; i < width; i++) {
+            let dataIndex = startIndex + Math.floor((i / width) * visibleLength);
+            if (dataIndex >= data.length) break;
+            
+            let val = data[dataIndex] * (height / 2);
+            if (i === 0) {
+                canvasCtx.moveTo(i, centerY - val);
+            } else {
+                canvasCtx.lineTo(i, centerY - val);
+            }
+        }
+        canvasCtx.stroke();
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+        if (!processedBuffer) return;
+        isDragging = true;
+        dragStartX = e.offsetX;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        dragCurrentX = e.offsetX;
+        
+        drawWaveform(); 
+
+        canvasCtx.fillStyle = 'rgba(219, 234, 254, 0.5)';
+        canvasCtx.fillRect(dragStartX, 0, dragCurrentX - dragStartX, canvas.height);
+    });
+
+    canvas.addEventListener('mouseup', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        let dragEndX = e.offsetX;
+        
+        if (Math.abs(dragEndX - dragStartX) > 10) {
+            let leftX = Math.min(dragStartX, dragEndX);
+            let rightX = Math.max(dragStartX, dragEndX);
+            
+            let width = canvas.width;
+            let visibleLength = endIndex - startIndex;
+            
+            let newStartIndex = startIndex + Math.floor((leftX / width) * visibleLength);
+            let newEndIndex = startIndex + Math.floor((rightX / width) * visibleLength);
+            
+            startIndex = newStartIndex;
+            endIndex = newEndIndex;
+        }
+        drawWaveform();
+    });
+
+    canvas.addEventListener('dblclick', () => {
+        if (processedBuffer) {
+            startIndex = 0;
+            endIndex = processedBuffer.length;
+            drawWaveform();
+        }
+    });
+
+    //UIの有効化・無効化を切り替える関数
+    function toggleControls(playing) {
+        document.getElementById('btnStop').disabled = !playing;
+        document.getElementById('bitDepth').disabled = playing;
+        document.getElementById('sampleRate').disabled = playing;
+    }
+
+    document.getElementById('btnPlay').addEventListener('click', async () => {
+        if (!processedBuffer) return;
+        
+        if (audioCtx.state === 'suspended') {
+            await audioCtx.resume();
+        }
+
+        // 再生中に再生ボタンが押された場合、前の音声を停止して最初からやり直す
+        if (sourceNode && isPlaying) {
+            sourceNode.onended = null; // 前のイベントをキャンセル
+            sourceNode.stop();
+        }
+        
+        sourceNode = audioCtx.createBufferSource();
+        sourceNode.buffer = processedBuffer;
+        sourceNode.connect(audioCtx.destination);
+        sourceNode.start();
+        isPlaying = true;
+        
+        toggleControls(true);
+        document.getElementById('status').innerText = '🎵 再生中...';
+        document.getElementById('status').style.color = "var(--main-color)";
+        
+        // 音声が最後まで再生された時の処理
+        sourceNode.onended = () => {
+            isPlaying = false;
+            toggleControls(false);
+            document.getElementById('status').innerText = '停止しました';
+            document.getElementById('status').style.color = "var(--text-color)";
+        };
+    });
+
+    document.getElementById('btnStop').addEventListener('click', () => {
+        if (sourceNode && isPlaying) {
+            sourceNode.onended = null; // 手動停止時は自動終了イベントを発火させない
+            sourceNode.stop();
+            isPlaying = false;
+            
+            toggleControls(false);
+            document.getElementById('status').innerText = '停止しました';
+            document.getElementById('status').style.color = "var(--text-color)";
+        }
+    });
+
+    document.getElementById('bitDepth').addEventListener('change', processAudio);
+    document.getElementById('sampleRate').addEventListener('change', processAudio);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文字の中身を見てみる</title>
+<style>
+    :root {
+        --text: #374151;
+        --main: #2563EB;
+        --sub1: #DBEAFE;
+        --sub2: #1E3A8A;
+        --muted: #9CA3AF;
+        --accent: #EF4444;
+        --icon: #646565;
+    }
+    body {
+        font-family: sans-serif;
+        color: var(--text);
+        background-color: #f9fafb;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        background-color: var(--sub1);
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        border-bottom: 2px solid var(--main);
+    }
+    header h1 {
+        margin: 0 0 0 10px;
+        color: var(--sub2);
+        font-size: 1.5rem;
+    }
+    .container {
+        display: flex;
+        gap: 2rem;
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    .column {
+        flex: 1;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    .file-input-area {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--muted);
+    }
+    .error {
+        color: var(--accent);
+        font-weight: bold;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+    .viewer-box {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .viewer-title {
+        font-weight: bold;
+        color: var(--main);
+    }
+    textarea {
+        width: 100%;
+        resize: vertical;
+        padding: 0.5rem;
+        border: 1px solid var(--muted);
+        border-radius: 4px;
+        color: var(--text);
+        font-family: monospace;
+        box-sizing: border-box;
+    }
+    .text-area {
+        height: 150px;
+    }
+    .binary-area {
+        height: 300px;
+        background-color: #f3f4f6;
+        color: var(--sub2);
+    }
+    input[type="file"] {
+        padding: 0.5rem;
+        margin-top: 0.5rem;
+        font-family: inherit;
+    }
+    .encoding-badge {
+        display: inline-block;
+        background-color: var(--main);
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-left: 1rem;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <!-- モノトーンのシンプルなアイコン -->
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--icon)" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM13 9V3.5L18.5 9H13Z"/>
+    </svg>
+    <h1>文字の中身を見てみよう！</h1>
+</header>
+
+<div class="container">
+    <!-- カラム1 -->
+    <div class="column" id="col1">
+        <div class="file-input-area">
+            <strong>ファイル選択①</strong><br>
+            <input type="file" id="file1" accept=".txt">
+            <div id="error1" class="error"></div>
+        </div>
+        <div class="viewer-box">
+            <div class="viewer-title">テキスト表示<span id="badge1" class="encoding-badge" style="display:none;"></span></div>
+            <textarea id="text1" class="text-area" readonly></textarea>
+        </div>
+        <div class="viewer-box">
+            <div class="viewer-title">バイナリ表示 (16進数)</div>
+            <textarea id="binary1" class="binary-area" readonly></textarea>
+        </div>
+    </div>
+
+    <!-- カラム2 -->
+    <div class="column" id="col2">
+        <div class="file-input-area">
+            <strong>ファイル選択②</strong><br>
+            <input type="file" id="file2" accept=".txt">
+            <div id="error2" class="error"></div>
+        </div>
+        <div class="viewer-box">
+            <div class="viewer-title">テキスト表示<span id="badge2" class="encoding-badge" style="display:none;"></span></div>
+            <textarea id="text2" class="text-area" readonly></textarea>
+        </div>
+        <div class="viewer-box">
+            <div class="viewer-title">バイナリ表示 (16進数)</div>
+            <textarea id="binary2" class="binary-area" readonly></textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 文字コード自動判定（UTF-8, Shift_JIS, UTF-16対応）
+    function detectEncoding(uint8Array) {
+        // UTF-16 (BOMあり) の判定
+        if (uint8Array.length >= 2) {
+            if (uint8Array[0] === 0xFE && uint8Array[1] === 0xFF) return 'UTF-16BE';
+            if (uint8Array[0] === 0xFF && uint8Array[1] === 0xFE) return 'UTF-16LE';
+        }
+        // UTF-8 (BOMあり) の判定
+        if (uint8Array.length >= 3 && uint8Array[0] === 0xEF && uint8Array[1] === 0xBB && uint8Array[2] === 0xBF) {
+            return 'UTF-8';
+        }
+
+        // UTF-8 (BOMなし) と Shift_JIS の簡易判定
+        let isUtf8 = true;
+        let nonAscii = false;
+        for (let i = 0; i < uint8Array.length; i++) {
+            let b = uint8Array[i];
+            if (b < 0x80) continue;
+            nonAscii = true;
+            if (b >= 0xC2 && b <= 0xDF && i + 1 < uint8Array.length) {
+                if ((uint8Array[i+1] & 0xC0) === 0x80) { i++; continue; }
+            }
+            if (b >= 0xE0 && b <= 0xEF && i + 2 < uint8Array.length) {
+                if ((uint8Array[i+1] & 0xC0) === 0x80 && (uint8Array[i+2] & 0xC0) === 0x80) { i += 2; continue; }
+            }
+            if (b >= 0xF0 && b <= 0xF4 && i + 3 < uint8Array.length) {
+                if ((uint8Array[i+1] & 0xC0) === 0x80 && (uint8Array[i+2] & 0xC0) === 0x80 && (uint8Array[i+3] & 0xC0) === 0x80) { i += 3; continue; }
+            }
+            isUtf8 = false;
+            break;
+        }
+        
+        // ASCIIのみで構成されており、偶数バイト目が0x00の場合はUTF-16LEと推定（BOMなし対策）
+        if (!nonAscii && uint8Array.length >= 2 && uint8Array[1] === 0x00) {
+            return 'UTF-16LE';
+        }
+
+        return (nonAscii && !isUtf8) ? 'Shift_JIS' : 'UTF-8';
+    }
+
+    function setupColumn(fileInputId, textId, binaryId, errorId, badgeId) {
+        const fileInput = document.getElementById(fileInputId);
+        const textArea = document.getElementById(textId);
+        const binaryArea = document.getElementById(binaryId);
+        const errorArea = document.getElementById(errorId);
+        const badgeArea = document.getElementById(badgeId);
+
+        fileInput.addEventListener('change', (e) => {
+            errorArea.textContent = '';
+            textArea.value = '';
+            binaryArea.value = '';
+            badgeArea.style.display = 'none';
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!file.name.toLowerCase().endsWith('.txt')) {
+                errorArea.textContent = 'エラー: .txtファイルのみアップロード可能です。';
+                return;
+            }
+            if (file.size > 100 * 1024) {
+                errorArea.textContent = 'エラー: ファイルサイズは100kB以下にしてください。';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const uint8Array = new Uint8Array(event.target.result);
+                
+                // バイナリ表示
+                let hexString = '';
+                for (let i = 0; i < uint8Array.length; i++) {
+                    hexString += uint8Array[i].toString(16).toUpperCase().padStart(2, '0') + ' ';
+                    if ((i + 1) % 8 === 0 && (i + 1) % 16 !== 0) hexString += '  ';
+                    if ((i + 1) % 16 === 0) hexString += '\n';
+                }
+                binaryArea.value = hexString.trim();
+
+                // 文字コード判定とテキスト表示
+                const encoding = detectEncoding(uint8Array);
+                badgeArea.textContent = '判別結果: ' + encoding;
+                badgeArea.style.display = 'inline-block';
+                
+                // TextDecoderに渡すためのエンコーディング名マッピング
+                let decoderEncoding = 'utf-8';
+                if (encoding === 'Shift_JIS') decoderEncoding = 'shift_jis';
+                if (encoding === 'UTF-16LE') decoderEncoding = 'utf-16le';
+                if (encoding === 'UTF-16BE') decoderEncoding = 'utf-16be';
+                
+                try {
+                    const decoder = new TextDecoder(decoderEncoding);
+                    textArea.value = decoder.decode(uint8Array);
+                } catch (err) {
+                    textArea.value = "テキストのデコードに失敗しました。";
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    setupColumn('file1', 'text1', 'binary1', 'error1', 'badge1');
+    setupColumn('file2', 'text2', 'binary2', 'error2', 'badge2');
+</script>
+</body>
+</html>
