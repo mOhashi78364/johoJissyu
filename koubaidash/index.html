@@ -24,7 +24,7 @@
       overflow: hidden;
       overscroll-behavior: none;
       position: fixed;
-      touch-action: manipulation;
+      touch-action: none; /* 全域でジェスチャを完全禁止 */
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
       background-color: #0f172a;
       color: #f8fafc;
@@ -77,6 +77,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      touch-action: manipulation;
       transition: transform 0.05s ease, filter 0.05s ease;
     }
 
@@ -255,7 +256,6 @@
       transition: width 0.05s linear;
     }
 
-    /* ランナーの向き制御（右向きに反転 ＆ 煙を背後に配置） */
     .runner-icon {
       position: absolute;
       top: -28px;
@@ -277,7 +277,7 @@
     .runner-body {
       font-size: 2rem;
       display: inline-block;
-      transform: scaleX(-1); /* 左向きの絵文字を右向きに反転 */
+      transform: scaleX(-1);
     }
 
     .school-icon {
@@ -325,7 +325,6 @@
       pointer-events: none;
     }
 
-    /* タップ時の視覚エフェクト（距離ではなくシンボル） */
     .float-text {
       position: absolute;
       font-size: 2rem;
@@ -372,7 +371,7 @@
       width: 100%;
       max-width: 360px;
       margin: auto 0;
-      transition: opacity 0.2s ease;
+      touch-action: manipulation;
     }
 
     .bread-card {
@@ -411,7 +410,6 @@
       pointer-events: none;
     }
 
-    /* お手つき赤フラッシュ */
     .flash-overlay {
       position: absolute;
       inset: 0;
@@ -496,7 +494,6 @@
       font-weight: 600;
     }
 
-    /* アニメーション */
     @keyframes float {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-8px); }
@@ -518,10 +515,8 @@
 <body>
 
   <div id="app">
-    <!-- お手つきフラッシュ -->
     <div id="flash-overlay" class="flash-overlay"></div>
 
-    <!-- 1. タイトル画面 -->
     <section id="title-screen" class="screen active">
       <div class="title-banner">
         <div class="title-icon">🏃💨🥪</div>
@@ -532,7 +527,7 @@
         <div class="rule-title">遊び方</div>
         <div class="rule-steps">
           <div class="rule-step"><span>👁️</span><span>指定されたパンを暗記！</span></div>
-          <div class="rule-step"><span>⚡</span><span>全力連打で購買へダッシュ！</span></div>
+          <div class="rule-step"><span>⚡</span><span>全力連打で購買へ急げ！</span></div>
           <div class="rule-step"><span>🎯</span><span>並んだパンから素早く選べ！</span></div>
         </div>
       </div>
@@ -540,7 +535,6 @@
       <button id="btn-start" class="btn-main">スタート！</button>
     </section>
 
-    <!-- 2. カウントダウン＆指令画面 -->
     <section id="ready-screen" class="screen">
       <div class="timer-badge">READY?</div>
       
@@ -553,17 +547,14 @@
       <div id="countdown-text" class="countdown-number">3</div>
     </section>
 
-    <!-- 3. ダッシュフェーズ画面 -->
     <section id="dash-screen" class="screen">
       <div class="dash-header">
-        <!-- 距離表示を削除し、タイマーのみを見やすく配置 -->
         <div id="dash-timer" class="timer-badge">0.000s</div>
       </div>
 
       <div class="track-container">
         <div class="track-road">
           <div id="track-fill" class="track-fill"></div>
-          <!-- 走る向きを右向きにし、左側に煙を配置 -->
           <div id="runner" class="runner-icon">
             <span class="runner-dust">💨</span>
             <span class="runner-body">🏃</span>
@@ -572,14 +563,12 @@
         </div>
       </div>
 
-      <!-- 連打用エリア -->
       <div id="tap-area" class="tap-area">
         <div class="tap-prompt">連打！！</div>
         <div class="tap-sub">ここを全力タップ！</div>
       </div>
     </section>
 
-    <!-- 4. 購買フェーズ画面 -->
     <section id="shop-screen" class="screen">
       <div class="shop-header">
         <div id="shop-timer" class="timer-badge">0.000s</div>
@@ -592,7 +581,6 @@
       <div id="bread-grid" class="bread-grid"></div>
     </section>
 
-    <!-- 5. リザルト画面 -->
     <section id="result-screen" class="screen">
       <div class="result-card">
         <div class="result-title">記録タイム</div>
@@ -609,6 +597,35 @@
     (() => {
       'use strict';
 
+      /* --- iOS Safari 特有のズーム・ジェスチャ完全抑止 --- */
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', (e) => {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+          e.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, { passive: false });
+
+      document.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+      }, { passive: false });
+
+      document.addEventListener('gesturestart', (e) => {
+        e.preventDefault();
+      }, { passive: false });
+
+      document.addEventListener('gesturechange', (e) => {
+        e.preventDefault();
+      }, { passive: false });
+
+      document.addEventListener('gestureend', (e) => {
+        e.preventDefault();
+      }, { passive: false });
+
+      window.addEventListener('contextmenu', (e) => e.preventDefault(), { passive: false });
+      window.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+
       /* --- パン候補リスト --- */
       const BREAD_MASTER = [
         { name: '焼きそばパン', emoji: '🥢' },
@@ -622,10 +639,9 @@
         { name: 'いちごパン',   emoji: '🍓' }
       ];
 
-      const TOTAL_STEPS = 38; // 到達に必要なタップ回数
+      const TOTAL_STEPS = 38;
       let currentStep = 0;
 
-      /* --- 状態管理 --- */
       let currentScreen = 'title-screen';
       let targetBread = null;
       let startTime = 0;
@@ -633,9 +649,8 @@
       let penaltyCount = 0;
       let timerRafId = null;
       let finalTimeSec = 0;
-      let isShopInteractable = false; // 購買遷移直後の誤爆防止フラグ
+      let isShopInteractable = false;
 
-      /* --- DOM参照 --- */
       const screens = {
         title: document.getElementById('title-screen'),
         ready: document.getElementById('ready-screen'),
@@ -665,14 +680,12 @@
       const resultRank = document.getElementById('result-rank');
       const resultDetail = document.getElementById('result-detail');
 
-      /* --- 画面遷移関数 --- */
       function showScreen(screenKey) {
         Object.values(screens).forEach(el => el.classList.remove('active'));
         screens[screenKey].classList.add('active');
         currentScreen = screenKey;
       }
 
-      /* --- 配列シャッフル --- */
       function shuffleArray(arr) {
         const copy = [...arr];
         for (let i = copy.length - 1; i > 0; i--) {
@@ -682,7 +695,6 @@
         return copy;
       }
 
-      /* --- ゲーム開始 --- */
       function startGame() {
         currentStep = 0;
         penaltyMs = 0;
@@ -713,7 +725,6 @@
         }, 750);
       }
 
-      /* --- ダッシュフェーズ開始 --- */
       function startDashPhase() {
         countdownText.style.color = '#38bdf8';
         showScreen('dash');
@@ -723,7 +734,6 @@
         startTimerLoop();
       }
 
-      /* --- タイマーループ --- */
       function startTimerLoop() {
         const updateTimer = () => {
           const now = performance.now();
@@ -750,14 +760,12 @@
         finalTimeSec = (elapsedMs / 1000).toFixed(3);
       }
 
-      /* --- ダッシュ進捗描画（距離表記なし） --- */
       function updateDashProgress() {
         const progressRate = Math.min(1, Math.max(0, currentStep / TOTAL_STEPS));
         trackFill.style.width = `${progressRate * 100}%`;
         runner.style.left = `${progressRate * 88}%`;
       }
 
-      /* --- 連打エフェクト（記号演出） --- */
       const TAP_EFFECTS = ['🔥', '⚡', '💥', '💨'];
       function createTapEffect(x, y) {
         const float = document.createElement('div');
@@ -772,7 +780,7 @@
         }, 450);
       }
 
-      /* --- 連打ハンドラ --- */
+      // 連打処理：pointerdown だけでなく touchstart も安全に抑止
       tapArea.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         if (currentScreen !== 'dash') return;
@@ -792,9 +800,7 @@
         }
       });
 
-      /* --- 購買フェーズ開始 --- */
       function startShopPhase() {
-        // 遷移直後の連打慣性による誤タップ防止ガード
         isShopInteractable = false;
         showScreen('shop');
         shopTargetText.textContent = `${targetBread.emoji} ${targetBread.name}`;
@@ -812,7 +818,6 @@
 
           card.addEventListener('pointerdown', (e) => {
             e.preventDefault();
-            // ガード期間中はタップを完全無視
             if (!isShopInteractable) return;
             handleBreadSelect(bread);
           });
@@ -820,21 +825,17 @@
           breadGrid.appendChild(card);
         });
 
-        // 遷移後 400ms 経過してからタップを受け付ける
         setTimeout(() => {
           isShopInteractable = true;
         }, 400);
       }
 
-      /* --- パン選択処理 --- */
       function handleBreadSelect(selectedBread) {
         if (selectedBread.name === targetBread.name) {
-          // 正解
           isShopInteractable = false;
           stopTimerLoop();
           showResult();
         } else {
-          // お手つきペナルティ (+1.5秒)
           penaltyMs += 1500;
           penaltyCount++;
 
@@ -851,17 +852,16 @@
         }
       }
 
-      /* --- リザルト画面表示 --- */
       function showResult() {
         resultTime.textContent = `${finalTimeSec}s`;
 
         const sec = parseFloat(finalTimeSec);
         let rankText = '';
-        if (sec < 7.0) {
+        if (sec < 5.0) {
           rankText = '🥇 購買の覇者（神速）';
-        } else if (sec < 8.5) {
+        } else if (sec < 7.0) {
           rankText = '🥈 昼飯確保成功！';
-        } else if (sec < 10) {
+        } else if (sec < 9.5) {
           rankText = '🥉 ギリギリ最後の1個！';
         } else {
           rankText = '🍞 ほぼ売り切れ…残飯確保';
@@ -873,7 +873,6 @@
         showScreen('result');
       }
 
-      /* --- ボタンイベント --- */
       btnStart.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         startGame();
@@ -883,10 +882,6 @@
         e.preventDefault();
         startGame();
       });
-
-      // スクロール・メニュー抑制
-      window.addEventListener('contextmenu', (e) => e.preventDefault(), { passive: false });
-      window.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
     })();
   </script>
