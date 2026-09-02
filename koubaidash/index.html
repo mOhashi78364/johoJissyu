@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>購買ダッシュ</title>
+  <style>
+    /* ===================================================
+       基本リセット ＆ スマートフォン誤動作防止設定
+       =================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      overscroll-behavior: none;
+      position: fixed;
+      touch-action: manipulation;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+
+    #app {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 各画面共通 */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: env(safe-area-inset-top, 16px) 20px env(safe-area-inset-bottom, 20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 1;
+    }
+
+    .screen.active {
+      opacity: 1;
+      pointer-events: auto;
+      z-index: 10;
+    }
+
+    /* UI共通パーツ */
+    .btn-main {
+      width: 100%;
+      max-width: 340px;
+      height: 64px;
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: #ffffff;
+      border: none;
+      border-radius: 20px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      box-shadow: 0 8px 24px rgba(234, 88, 12, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.05s ease, filter 0.05s ease;
+    }
+
+    .btn-main:active {
+      transform: scale(0.96);
+      filter: brightness(0.9);
+    }
+
+    .timer-badge {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #38bdf8;
+      background: rgba(15, 23, 42, 0.7);
+      padding: 6px 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+    }
+
+    /* ===================================================
+       1. タイトル画面
+       =================================================== */
+    #title-screen {
+      justify-content: center;
+      gap: 28px;
+    }
+
+    .title-banner {
+      text-align: center;
+    }
+
+    .title-icon {
+      font-size: 4.2rem;
+      animation: float 2s infinite ease-in-out;
+      display: inline-block;
+    }
+
+    .title-logo {
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: #fbbf24;
+      text-shadow: 0 4px 16px rgba(251, 191, 36, 0.4);
+      letter-spacing: 0.08em;
+      margin-top: 8px;
+    }
+
+    .rule-card {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 20px;
+      width: 100%;
+      max-width: 340px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .rule-title {
+      font-size: 1rem;
+      color: #94a3b8;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 8px;
+    }
+
+    .rule-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .rule-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .rule-step span:first-child {
+      font-size: 1.3rem;
+    }
+
+    /* ===================================================
+       2. 指令＆カウントダウン画面
+       =================================================== */
+    #ready-screen {
+      justify-content: center;
+      gap: 32px;
+    }
+
+    .target-box {
+      width: 100%;
+      max-width: 320px;
+      background: rgba(30, 41, 59, 0.9);
+      border: 2px solid #fbbf24;
+      border-radius: 24px;
+      padding: 24px 16px;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(251, 191, 36, 0.25);
+    }
+
+    .target-label {
+      font-size: 0.95rem;
+      color: #fbbf24;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+
+    .target-emoji {
+      font-size: 5rem;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .target-name {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #ffffff;
+    }
+
+    .countdown-number {
+      font-size: 5rem;
+      font-weight: 900;
+      color: #38bdf8;
+      text-align: center;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-shadow: 0 0 24px rgba(56, 189, 248, 0.8);
+    }
+
+    /* ===================================================
+       3. ダッシュフェーズ（全力連打）
+       =================================================== */
+    #dash-screen {
+      padding-bottom: 0;
+      gap: 16px;
+    }
+
+    .dash-header {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    /* 走るレーンアニメーション */
+    .track-container {
+      width: 100%;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px 14px 12px;
+      position: relative;
+    }
+
+    .track-road {
+      width: 100%;
+      height: 16px;
+      background: #334155;
+      border-radius: 8px;
+      position: relative;
+      overflow: visible;
+    }
+
+    .track-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38bdf8, #f59e0b);
+      border-radius: 8px;
+      transition: width 0.05s linear;
+    }
+
+    /* ランナーの向き制御（右向きに反転 ＆ 煙を背後に配置） */
+    .runner-icon {
+      position: absolute;
+      top: -28px;
+      left: 0%;
+      transform: translateX(-50%);
+      line-height: 1;
+      transition: left 0.05s linear;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .runner-dust {
+      font-size: 1.3rem;
+      margin-right: -4px;
+      display: inline-block;
+    }
+
+    .runner-body {
+      font-size: 2rem;
+      display: inline-block;
+      transform: scaleX(-1); /* 左向きの絵文字を右向きに反転 */
+    }
+
+    .school-icon {
+      position: absolute;
+      right: 0;
+      top: -24px;
+      font-size: 1.8rem;
+    }
+
+    /* 連打タップエリア */
+    .tap-area {
+      width: 100%;
+      height: 65%;
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border-top: 3px solid #f97316;
+      border-radius: 36px 36px 0 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      touch-action: none;
+      cursor: pointer;
+      box-shadow: 0 -10px 40px rgba(249, 115, 22, 0.2);
+    }
+
+    .tap-area:active {
+      background: linear-gradient(180deg, #273549 0%, #152033 100%);
+    }
+
+    .tap-prompt {
+      font-size: 3rem;
+      font-weight: 900;
+      color: #f97316;
+      letter-spacing: 0.05em;
+      pointer-events: none;
+      text-shadow: 0 4px 16px rgba(249, 115, 22, 0.4);
+    }
+
+    .tap-sub {
+      font-size: 1.05rem;
+      color: #94a3b8;
+      font-weight: 700;
+      margin-top: 8px;
+      pointer-events: none;
+    }
+
+    /* タップ時の視覚エフェクト（距離ではなくシンボル） */
+    .float-text {
+      position: absolute;
+      font-size: 2rem;
+      font-weight: 900;
+      pointer-events: none;
+      animation: floatUp 0.45s ease-out forwards;
+    }
+
+    /* ===================================================
+       4. 購買フェーズ（指定アイテム捜索）
+       =================================================== */
+    #shop-screen {
+      justify-content: flex-start;
+      gap: 16px;
+    }
+
+    .shop-header {
+      width: 100%;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .shop-reminder {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid #fbbf24;
+      padding: 8px 16px;
+      border-radius: 999px;
+      margin-top: 10px;
+    }
+
+    .shop-reminder-text {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fbbf24;
+    }
+
+    .bread-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      width: 100%;
+      max-width: 360px;
+      margin: auto 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .bread-card {
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 18px;
+      padding: 12px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      aspect-ratio: 1 / 1;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.05s ease, border-color 0.1s ease;
+    }
+
+    .bread-card:active {
+      transform: scale(0.94);
+      border-color: #94a3b8;
+    }
+
+    .bread-card-emoji {
+      font-size: 2.5rem;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .bread-card-name {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #f1f5f9;
+      text-align: center;
+      word-break: keep-all;
+      pointer-events: none;
+    }
+
+    /* お手つき赤フラッシュ */
+    .flash-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(239, 68, 68, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s ease;
+      z-index: 50;
+    }
+
+    .flash-overlay.active {
+      opacity: 1;
+    }
+
+    .penalty-pop {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #ef4444;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 8px 20px;
+      border-radius: 12px;
+      border: 2px solid #ef4444;
+      pointer-events: none;
+      animation: popFade 0.7s forwards;
+      z-index: 51;
+    }
+
+    /* ===================================================
+       5. リザルト画面
+       =================================================== */
+    #result-screen {
+      justify-content: center;
+      gap: 24px;
+    }
+
+    .result-card {
+      width: 100%;
+      max-width: 340px;
+      background: rgba(30, 41, 59, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+    }
+
+    .result-title {
+      font-size: 1.1rem;
+      color: #94a3b8;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+    }
+
+    .result-time {
+      font-size: 3.4rem;
+      font-weight: 900;
+      color: #38bdf8;
+      font-family: "Courier New", Courier, monospace;
+      margin: 10px 0;
+      text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+    }
+
+    .result-rank-badge {
+      display: inline-block;
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #fbbf24;
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid #fbbf24;
+      padding: 6px 16px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+
+    .result-detail {
+      font-size: 0.85rem;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    /* アニメーション */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0) scale(0.8); }
+      100% { opacity: 0; transform: translateY(-45px) scale(1.3); }
+    }
+
+    @keyframes popFade {
+      0% { opacity: 0; transform: translate(-50%, -40%) scale(0.8); }
+      20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+      80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -60%) scale(0.9); }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+    <!-- お手つきフラッシュ -->
+    <div id="flash-overlay" class="flash-overlay"></div>
+
+    <!-- 1. タイトル画面 -->
+    <section id="title-screen" class="screen active">
+      <div class="title-banner">
+        <div class="title-icon">🏃💨🥪</div>
+        <h1 class="title-logo">購買ダッシュ</h1>
+      </div>
+
+      <div class="rule-card">
+        <div class="rule-title">遊び方</div>
+        <div class="rule-steps">
+          <div class="rule-step"><span>👁️</span><span>指定されたパンを暗記！</span></div>
+          <div class="rule-step"><span>⚡</span><span>全力連打で購買へダッシュ！</span></div>
+          <div class="rule-step"><span>🎯</span><span>並んだパンから素早く選べ！</span></div>
+        </div>
+      </div>
+
+      <button id="btn-start" class="btn-main">スタート！</button>
+    </section>
+
+    <!-- 2. カウントダウン＆指令画面 -->
+    <section id="ready-screen" class="screen">
+      <div class="timer-badge">READY?</div>
+      
+      <div class="target-box">
+        <div class="target-label">▼ 購買でこれを買え！ ▼</div>
+        <div id="ready-target-emoji" class="target-emoji">🥪</div>
+        <div id="ready-target-name" class="target-name">焼きそばパン</div>
+      </div>
+
+      <div id="countdown-text" class="countdown-number">3</div>
+    </section>
+
+    <!-- 3. ダッシュフェーズ画面 -->
+    <section id="dash-screen" class="screen">
+      <div class="dash-header">
+        <!-- 距離表示を削除し、タイマーのみを見やすく配置 -->
+        <div id="dash-timer" class="timer-badge">0.000s</div>
+      </div>
+
+      <div class="track-container">
+        <div class="track-road">
+          <div id="track-fill" class="track-fill"></div>
+          <!-- 走る向きを右向きにし、左側に煙を配置 -->
+          <div id="runner" class="runner-icon">
+            <span class="runner-dust">💨</span>
+            <span class="runner-body">🏃</span>
+          </div>
+          <div class="school-icon">🏫</div>
+        </div>
+      </div>
+
+      <!-- 連打用エリア -->
+      <div id="tap-area" class="tap-area">
+        <div class="tap-prompt">連打！！</div>
+        <div class="tap-sub">ここを全力タップ！</div>
+      </div>
+    </section>
+
+    <!-- 4. 購買フェーズ画面 -->
+    <section id="shop-screen" class="screen">
+      <div class="shop-header">
+        <div id="shop-timer" class="timer-badge">0.000s</div>
+        <div class="shop-reminder">
+          <span>探すもの:</span>
+          <span id="shop-target-text" class="shop-reminder-text">🥪 焼きそばパン</span>
+        </div>
+      </div>
+
+      <div id="bread-grid" class="bread-grid"></div>
+    </section>
+
+    <!-- 5. リザルト画面 -->
+    <section id="result-screen" class="screen">
+      <div class="result-card">
+        <div class="result-title">記録タイム</div>
+        <div id="result-time" class="result-time">0.000s</div>
+        <div id="result-rank" class="result-rank-badge">購買の覇者</div>
+        <div id="result-detail" class="result-detail">お手つき回数: 0回 (+0.0s)</div>
+      </div>
+
+      <button id="btn-restart" class="btn-main">もう一度遊ぶ</button>
+    </section>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      /* --- パン候補リスト --- */
+      const BREAD_MASTER = [
+        { name: '焼きそばパン', emoji: '🥢' },
+        { name: 'メロンパン',   emoji: '🍈' },
+        { name: 'カレーパン',   emoji: '🍛' },
+        { name: 'チョココロネ', emoji: '🍫' },
+        { name: 'ホットドッグ', emoji: '🌭' },
+        { name: 'クロワッサン', emoji: '🥐' },
+        { name: 'ピザパン',     emoji: '🍕' },
+        { name: 'サンドイッチ', emoji: '🥪' },
+        { name: 'いちごパン',   emoji: '🍓' }
+      ];
+
+      const TOTAL_STEPS = 38; // 到達に必要なタップ回数
+      let currentStep = 0;
+
+      /* --- 状態管理 --- */
+      let currentScreen = 'title-screen';
+      let targetBread = null;
+      let startTime = 0;
+      let penaltyMs = 0;
+      let penaltyCount = 0;
+      let timerRafId = null;
+      let finalTimeSec = 0;
+      let isShopInteractable = false; // 購買遷移直後の誤爆防止フラグ
+
+      /* --- DOM参照 --- */
+      const screens = {
+        title: document.getElementById('title-screen'),
+        ready: document.getElementById('ready-screen'),
+        dash: document.getElementById('dash-screen'),
+        shop: document.getElementById('shop-screen'),
+        result: document.getElementById('result-screen')
+      };
+
+      const btnStart = document.getElementById('btn-start');
+      const btnRestart = document.getElementById('btn-restart');
+      const tapArea = document.getElementById('tap-area');
+      const flashOverlay = document.getElementById('flash-overlay');
+
+      const readyTargetEmoji = document.getElementById('ready-target-emoji');
+      const readyTargetName = document.getElementById('ready-target-name');
+      const countdownText = document.getElementById('countdown-text');
+
+      const dashTimer = document.getElementById('dash-timer');
+      const trackFill = document.getElementById('track-fill');
+      const runner = document.getElementById('runner');
+
+      const shopTimer = document.getElementById('shop-timer');
+      const shopTargetText = document.getElementById('shop-target-text');
+      const breadGrid = document.getElementById('bread-grid');
+
+      const resultTime = document.getElementById('result-time');
+      const resultRank = document.getElementById('result-rank');
+      const resultDetail = document.getElementById('result-detail');
+
+      /* --- 画面遷移関数 --- */
+      function showScreen(screenKey) {
+        Object.values(screens).forEach(el => el.classList.remove('active'));
+        screens[screenKey].classList.add('active');
+        currentScreen = screenKey;
+      }
+
+      /* --- 配列シャッフル --- */
+      function shuffleArray(arr) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      /* --- ゲーム開始 --- */
+      function startGame() {
+        currentStep = 0;
+        penaltyMs = 0;
+        penaltyCount = 0;
+        isShopInteractable = false;
+
+        const shuffled = shuffleArray(BREAD_MASTER);
+        targetBread = shuffled[0];
+
+        readyTargetEmoji.textContent = targetBread.emoji;
+        readyTargetName.textContent = targetBread.name;
+        countdownText.textContent = '3';
+
+        showScreen('ready');
+
+        let count = 3;
+        const countdownTimer = setInterval(() => {
+          count--;
+          if (count > 0) {
+            countdownText.textContent = count;
+          } else if (count === 0) {
+            countdownText.textContent = 'DASH!';
+            countdownText.style.color = '#f97316';
+          } else {
+            clearInterval(countdownTimer);
+            startDashPhase();
+          }
+        }, 750);
+      }
+
+      /* --- ダッシュフェーズ開始 --- */
+      function startDashPhase() {
+        countdownText.style.color = '#38bdf8';
+        showScreen('dash');
+        updateDashProgress();
+
+        startTime = performance.now();
+        startTimerLoop();
+      }
+
+      /* --- タイマーループ --- */
+      function startTimerLoop() {
+        const updateTimer = () => {
+          const now = performance.now();
+          const elapsedMs = (now - startTime) + penaltyMs;
+          const timeString = (elapsedMs / 1000).toFixed(3) + 's';
+
+          if (currentScreen === 'dash') {
+            dashTimer.textContent = timeString;
+          } else if (currentScreen === 'shop') {
+            shopTimer.textContent = timeString;
+          }
+
+          timerRafId = requestAnimationFrame(updateTimer);
+        };
+        timerRafId = requestAnimationFrame(updateTimer);
+      }
+
+      function stopTimerLoop() {
+        if (timerRafId) {
+          cancelAnimationFrame(timerRafId);
+          timerRafId = null;
+        }
+        const elapsedMs = (performance.now() - startTime) + penaltyMs;
+        finalTimeSec = (elapsedMs / 1000).toFixed(3);
+      }
+
+      /* --- ダッシュ進捗描画（距離表記なし） --- */
+      function updateDashProgress() {
+        const progressRate = Math.min(1, Math.max(0, currentStep / TOTAL_STEPS));
+        trackFill.style.width = `${progressRate * 100}%`;
+        runner.style.left = `${progressRate * 88}%`;
+      }
+
+      /* --- 連打エフェクト（記号演出） --- */
+      const TAP_EFFECTS = ['🔥', '⚡', '💥', '💨'];
+      function createTapEffect(x, y) {
+        const float = document.createElement('div');
+        float.className = 'float-text';
+        float.textContent = TAP_EFFECTS[Math.floor(Math.random() * TAP_EFFECTS.length)];
+        float.style.left = `${x - 16}px`;
+        float.style.top = `${y - 24}px`;
+        tapArea.appendChild(float);
+
+        setTimeout(() => {
+          if (float.parentNode) float.parentNode.removeChild(float);
+        }, 450);
+      }
+
+      /* --- 連打ハンドラ --- */
+      tapArea.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        if (currentScreen !== 'dash') return;
+
+        currentStep++;
+
+        const rect = tapArea.getBoundingClientRect();
+        const clientX = e.clientX || (rect.left + rect.width / 2);
+        const clientY = e.clientY || (rect.top + rect.height / 2);
+        createTapEffect(clientX - rect.left, clientY - rect.top);
+
+        if (currentStep >= TOTAL_STEPS) {
+          updateDashProgress();
+          startShopPhase();
+        } else {
+          updateDashProgress();
+        }
+      });
+
+      /* --- 購買フェーズ開始 --- */
+      function startShopPhase() {
+        // 遷移直後の連打慣性による誤タップ防止ガード
+        isShopInteractable = false;
+        showScreen('shop');
+        shopTargetText.textContent = `${targetBread.emoji} ${targetBread.name}`;
+
+        const breads = shuffleArray(BREAD_MASTER);
+        breadGrid.innerHTML = '';
+
+        breads.forEach(bread => {
+          const card = document.createElement('div');
+          card.className = 'bread-card';
+          card.innerHTML = `
+            <div class="bread-card-emoji">${bread.emoji}</div>
+            <div class="bread-card-name">${bread.name}</div>
+          `;
+
+          card.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            // ガード期間中はタップを完全無視
+            if (!isShopInteractable) return;
+            handleBreadSelect(bread);
+          });
+
+          breadGrid.appendChild(card);
+        });
+
+        // 遷移後 400ms 経過してからタップを受け付ける
+        setTimeout(() => {
+          isShopInteractable = true;
+        }, 400);
+      }
+
+      /* --- パン選択処理 --- */
+      function handleBreadSelect(selectedBread) {
+        if (selectedBread.name === targetBread.name) {
+          // 正解
+          isShopInteractable = false;
+          stopTimerLoop();
+          showResult();
+        } else {
+          // お手つきペナルティ (+1.5秒)
+          penaltyMs += 1500;
+          penaltyCount++;
+
+          flashOverlay.classList.add('active');
+          setTimeout(() => flashOverlay.classList.remove('active'), 150);
+
+          const pop = document.createElement('div');
+          pop.className = 'penalty-pop';
+          pop.textContent = '+1.5s お手つき!';
+          screens.shop.appendChild(pop);
+          setTimeout(() => {
+            if (pop.parentNode) pop.parentNode.removeChild(pop);
+          }, 700);
+        }
+      }
+
+      /* --- リザルト画面表示 --- */
+      function showResult() {
+        resultTime.textContent = `${finalTimeSec}s`;
+
+        const sec = parseFloat(finalTimeSec);
+        let rankText = '';
+        if (sec < 7.0) {
+          rankText = '🥇 購買の覇者（神速）';
+        } else if (sec < 8.5) {
+          rankText = '🥈 昼飯確保成功！';
+        } else if (sec < 10) {
+          rankText = '🥉 ギリギリ最後の1個！';
+        } else {
+          rankText = '🍞 ほぼ売り切れ…残飯確保';
+        }
+
+        resultRank.textContent = rankText;
+        resultDetail.textContent = `お手つき: ${penaltyCount}回 (+${(penaltyCount * 1.5).toFixed(1)}s)`;
+
+        showScreen('result');
+      }
+
+      /* --- ボタンイベント --- */
+      btnStart.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        startGame();
+      });
+
+      btnRestart.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        startGame();
+      });
+
+      // スクロール・メニュー抑制
+      window.addEventListener('contextmenu', (e) => e.preventDefault(), { passive: false });
+      window.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+
+    })();
+  </script>
+</body>
+</html>

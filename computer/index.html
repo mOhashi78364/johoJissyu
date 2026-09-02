@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プログラミングの歴史体感：配線方式 vs プログラム内蔵方式</title>
+<style>
+    :root {
+        --text: #374151;
+        --main: #2563EB;
+        --sub1: #DBEAFE;
+        --sub2: #1E3A8A;
+        --muted: #9CA3AF;
+        --accent: #EF4444;
+        --icon: #646565;
+    }
+    body {
+        font-family: sans-serif;
+        color: var(--text);
+        background-color: #f9fafb;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        background-color: var(--sub1);
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        border-bottom: 2px solid var(--main);
+    }
+    header h1 {
+        margin: 0 0 0 10px;
+        color: var(--sub2);
+        font-size: 1.5rem;
+    }
+    .nav-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 1.5rem 0 0.5rem 0;
+    }
+    .tab-btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 1rem;
+        font-weight: bold;
+        border: 2px solid var(--main);
+        background-color: white;
+        color: var(--main);
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .tab-btn.active {
+        background-color: var(--main);
+        color: white;
+    }
+    .container {
+        display: none;
+        gap: 2rem;
+        padding: 1.5rem 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        position: relative;
+    }
+    .container.active {
+        display: flex;
+    }
+    .column {
+        flex: 1;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        position: relative;
+        z-index: 10;
+    }
+    .column h2 {
+        margin: 0 0 1rem 0;
+        font-size: 1.2rem;
+        color: var(--sub2);
+        border-bottom: 2px solid var(--sub1);
+        padding-bottom: 0.5rem;
+    }
+    .desc-text {
+        font-size: 0.9rem;
+        color: #4b5563;
+        line-height: 1.4;
+        margin-bottom: 1rem;
+    }
+    select {
+        padding: 0.4rem;
+        border: 1px solid var(--muted);
+        border-radius: 4px;
+        font-size: 1rem;
+        width: 160px; 
+    }
+    .fixed-val {
+        display: inline-block;
+        padding: 0.4rem;
+        border: 1px solid var(--muted);
+        border-radius: 4px;
+        font-size: 1rem;
+        width: 80px;
+        background-color: #f3f4f6;
+        text-align: center;
+        margin-top: 5px;
+        font-weight: normal;
+    }
+    .btn-action {
+        background-color: var(--main);
+        color: white;
+        border: none;
+        padding: 0.8rem;
+        font-size: 1rem;
+        font-weight: bold;
+        border-radius: 6px;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 15px;
+        transition: opacity 0.3s;
+    }
+    .btn-action:hover:not(:disabled) { background-color: var(--sub2); }
+    .output-box {
+        background-color: var(--sub1);
+        border: 2px solid var(--main);
+        border-radius: 6px;
+        padding: 1rem;
+        text-align: center;
+        font-size: 1.4rem;
+        font-weight: bold;
+        color: var(--sub2);
+        margin-top: 10px;
+    }
+    table.memory-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+    table.memory-table tr {
+        transition: box-shadow 0.3s, background-color 0.3s;
+    }
+    table.memory-table th, table.memory-table td {
+        border: 1px solid var(--muted);
+        padding: 0.5rem;
+        text-align: center;
+    }
+    table.memory-table th { background-color: var(--sub1); color: var(--sub2); }
+
+    .wiring-area {
+        display: flex;
+        justify-content: space-between;
+        background: #f9fafb;
+        border: 2px dashed var(--muted);
+        border-radius: 8px;
+        padding: 2rem 1rem;
+        position: relative;
+        user-select: none;
+    }
+    .blocks-col {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        z-index: 10;
+    }
+    .block {
+        background: white;
+        border: 2px solid var(--icon);
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+        position: relative;
+        width: 160px;
+        font-weight: bold;
+    }
+    .socket {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px var(--icon);
+        transition: all 0.2s;
+        z-index: 20;
+    }
+    .socket:hover { transform: translateY(-50%) scale(1.2); }
+    .socket.out { right: -15px; background-color: var(--main); box-shadow: 0 0 0 2px var(--main); cursor: grab; }
+    .socket.out:active { cursor: grabbing; }
+    .socket.in { left: -15px; background-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+    .socket.active { box-shadow: 0 0 0 4px #F59E0B; background-color: #F59E0B; }
+    .socket.connected { background-color: #10B981; box-shadow: 0 0 0 2px #10B981; }
+
+    #svg-layer {
+        position: absolute;
+        top: 0; left: 0; 
+        width: 100%; height: 100%;
+        pointer-events: none; 
+        z-index: 5;
+    }
+    
+    .instruction-box {
+        background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 10px;
+        font-size: 0.9rem; font-weight: bold; color: #92400E; margin-bottom: 15px;
+    }
+
+    .pc-box {
+        background-color: #FEF3C7;
+        border: 2px solid #F59E0B;
+        border-radius: 6px;
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+        font-weight: bold;
+        color: #92400E;
+        display: inline-block;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--icon)" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM13 9V3.5L18.5 9H13Z"/>
+    </svg>
+    <h1>プログラミングの歴史体感：配線方式 vs プログラム内蔵方式</h1>
+</header>
+
+<div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchMode('wiring')">1. 配線方式</button>
+    <button class="tab-btn" onclick="switchMode('neumann')">2. プログラム内蔵方式</button>
+</div>
+
+<!-- ================= 1. 配線方式 ================= -->
+<div class="container active" id="wiring-container">
+    <div class="column" style="flex: 2;">
+        <h2>配線ボード</h2>
+        <div class="instruction-box" id="instruction-msg">
+            【手順】青い「出力端子」からドラッグし、赤い「入力端子」にドロップして線を繋ぎます。<br>
+            ※線を外す時は、繋がっている赤い「入力端子」をクリックしてください。
+        </div>
+        
+        <div class="wiring-area" id="wiring-area">
+            <svg id="svg-layer"></svg>
+
+            <!-- データブロック -->
+            <div class="blocks-col">
+                <div class="block" id="node-A">データ A <br><span class="fixed-val" id="val-A">10</span>
+                    <div class="socket out" data-port="A"></div>
+                </div>
+                <div class="block" id="node-B">データ B <br><span class="fixed-val" id="val-B">4</span>
+                    <div class="socket out" data-port="B"></div>
+                </div>
+                <div class="block" id="node-C">データ C <br><span class="fixed-val" id="val-C">7</span>
+                    <div class="socket out" data-port="C"></div>
+                </div>
+                <div class="block" id="node-D">データ D <br><span class="fixed-val" id="val-D">2</span>
+                    <div class="socket out" data-port="D"></div>
+                </div>
+            </div>
+
+            <!-- 演算回路ブロック -->
+            <div class="blocks-col" style="justify-content: space-around;">
+                <div class="block" id="node-ADD" style="padding: 20px 10px;">
+                    <div class="socket in" id="sock-add1" style="top: 30%;"></div>
+                    足し算回路 (+)<br><span style="font-size:0.8rem; color:#666;">(入力1 ＋ 入力2)</span>
+                    <div class="socket in" id="sock-add2" style="top: 70%;"></div>
+                </div>
+                <div class="block" id="node-SUB" style="padding: 20px 10px;">
+                    <div class="socket in" id="sock-sub1" style="top: 30%;"></div>
+                    引き算回路 (-)<br><span style="font-size:0.8rem; color:#666;">(入力1 － 入力2)</span>
+                    <div class="socket in" id="sock-sub2" style="top: 70%;"></div>
+                </div>
+            </div>
+        </div>
+        <button class="btn-action" onclick="runWiring()">計算実行</button>
+    </div>
+
+    <div class="column" style="flex: 1;">
+        <h2>実行結果</h2>
+        <div class="output-box" style="margin-top: 40px; padding: 2rem 1rem;">
+            <span id="wiring-output" style="font-size: 1.2rem;">---</span>
+        </div>
+    </div>
+</div>
+
+<!-- ================= 2. プログラム内蔵方式 ================= -->
+<div class="container" id="neumann-container">
+    <div class="column">
+        <h2>主記憶装置</h2>
+        <p class="desc-text">データもプログラムも全て「アドレス」で指定します。</p>
+        <table class="memory-table">
+            <thead><tr><th>アドレス</th><th>役割</th><th>格納内容</th></tr></thead>
+            <tbody>
+                <tr id="tr-00"><td><code>0x00</code></td><td>データA</td><td><span class="fixed-val" id="mem-00">10</span></td></tr>
+                <tr id="tr-01"><td><code>0x01</code></td><td>データB</td><td><span class="fixed-val" id="mem-01">4</span></td></tr>
+                <tr id="tr-02"><td><code>0x02</code></td><td>データC</td><td><span class="fixed-val" id="mem-02">7</span></td></tr>
+                <tr id="tr-03"><td><code>0x03</code></td><td>データD</td><td><span class="fixed-val" id="mem-03">2</span></td></tr>
+                <tr id="tr-04" style="background:#eef;"><td><code>0x04</code></td><td><b>命令(プログラム)</b></td>
+                    <td>
+                        <select id="mem-04">
+                            <option value="ADD">ADD (足し算)</option>
+                            <option value="SUB">SUB (引き算)</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr id="tr-05" style="background:#eef;"><td><code>0x05</code></td><td>対象アドレス1</td>
+                    <td>
+                        <select id="mem-05">
+                            <option value="0x00">0x00 (データA)</option>
+                            <option value="0x01">0x01 (データB)</option>
+                            <option value="0x02">0x02 (データC)</option>
+                            <option value="0x03">0x03 (データD)</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr id="tr-06" style="background:#eef;"><td><code>0x06</code></td><td>対象アドレス2</td>
+                    <td>
+                        <select id="mem-06">
+                            <option value="0x01">0x01 (データB)</option>
+                            <option value="0x00">0x00 (データA)</option>
+                            <option value="0x02">0x02 (データC)</option>
+                            <option value="0x03">0x03 (データD)</option>
+                        </select>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="column">
+        <h2>CPU (制御・演算装置) 実行部</h2>
+        <p class="desc-text">CPUが、順次命令を読み込んで実行します（逐次処理方式）。</p>
+        
+        <div class="pc-box">プログラムカウンタ (PC): <span id="pc-display" style="font-family: monospace; font-size:1.2rem;">---</span></div>
+        
+        <div style="background-color: var(--sub1); padding: 1rem; border-radius: 4px; border: 1px solid var(--main); min-height: 120px;">
+            <strong>実行状況:</strong><br><br>
+            <span id="cpu-status" style="font-family: monospace; color: var(--sub2); line-height: 1.5;">実行待ち...</span>
+        </div>
+        <button class="btn-action" id="run-btn" onclick="runNeumann()">プログラム実行</button>
+        <div class="output-box">
+            <span style="font-size: 1rem; color: #666;">最終出力結果</span><br>
+            <span id="neumann-output">---</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- タブ切り替え ---
+    function switchMode(mode) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+        if (mode === 'wiring') {
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            document.getElementById('wiring-container').classList.add('active');
+            updateLines();
+        } else {
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            document.getElementById('neumann-container').classList.add('active');
+        }
+    }
+
+    // --- ドラッグ＆ドロップ配線ロジック ---
+    let isDragging = false;
+    let dragStartPort = null;
+    let tempLine = null;
+    let connections = { add1: null, add2: null, sub1: null, sub2: null };
+
+    const svgLayer = document.getElementById('svg-layer');
+    const msgBox = document.getElementById('instruction-msg');
+
+    function getSocketPos(el) {
+        const rect = el.getBoundingClientRect();
+        const svgRect = svgLayer.getBoundingClientRect();
+        return {
+            x: rect.left + rect.width / 2 - svgRect.left,
+            y: rect.top + rect.height / 2 - svgRect.top
+        };
+    }
+
+    document.querySelectorAll('.socket.out').forEach(socket => {
+        socket.addEventListener('mousedown', function(e) {
+            e.preventDefault(); 
+            isDragging = true;
+            dragStartPort = this.dataset.port;
+            
+            document.querySelectorAll('.socket.out').forEach(el => el.classList.remove('active'));
+            this.classList.add('active');
+            
+            msgBox.innerHTML = `【手順】データ ${dragStartPort} の配線を引いています。赤い「入力端子」で離してください。`;
+            msgBox.style.backgroundColor = "#DBEAFE";
+            msgBox.style.borderColor = "#2563EB";
+
+            tempLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            const startPos = getSocketPos(this);
+            tempLine.setAttribute('x1', startPos.x);
+            tempLine.setAttribute('y1', startPos.y);
+            tempLine.setAttribute('x2', startPos.x);
+            tempLine.setAttribute('y2', startPos.y);
+            tempLine.setAttribute('stroke', '#10B981');
+            tempLine.setAttribute('stroke-width', '4');
+            tempLine.setAttribute('stroke-dasharray', '5,5');
+            svgLayer.appendChild(tempLine);
+        });
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging || !tempLine) return;
+        const svgRect = svgLayer.getBoundingClientRect();
+        const mouseX = e.clientX - svgRect.left;
+        const mouseY = e.clientY - svgRect.top;
+        tempLine.setAttribute('x2', mouseX);
+        tempLine.setAttribute('y2', mouseY);
+    });
+
+    function checkHit(clientX, clientY) {
+        const inSockets = document.querySelectorAll('.socket.in');
+        for (let socket of inSockets) {
+            const rect = socket.getBoundingClientRect();
+            if (clientX >= rect.left - 15 && clientX <= rect.right + 15 &&
+                clientY >= rect.top - 15 && clientY <= rect.bottom + 15) {
+                return socket;
+            }
+        }
+        return null;
+    }
+
+    document.addEventListener('mouseup', function(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        if (tempLine) {
+            svgLayer.removeChild(tempLine);
+            tempLine = null;
+        }
+
+        const dropTarget = checkHit(e.clientX, e.clientY);
+
+        if (dropTarget) {
+            const inPort = dropTarget.id.replace('sock-', '');
+            connections[inPort] = dragStartPort;
+            dropTarget.classList.add('connected');
+            msgBox.innerHTML = `【手順】配線完了！引き続き配線するか、「計算実行」を押してください。`;
+            msgBox.style.backgroundColor = "#D1FAE5";
+            msgBox.style.borderColor = "#10B981";
+        } else {
+            msgBox.innerHTML = `【手順】青い「出力端子」からドラッグし、赤い「入力端子」にドロップして線を繋ぎます。`;
+            msgBox.style.backgroundColor = "#f9fafb";
+            msgBox.style.borderColor = "#9CA3AF";
+        }
+        
+        document.querySelectorAll('.socket.out').forEach(el => el.classList.remove('active'));
+        updateLines();
+        document.getElementById('wiring-output').innerHTML = "---";
+    });
+
+    document.querySelectorAll('.socket.in').forEach(socket => {
+        socket.addEventListener('click', function(e) {
+            const inPort = this.id.replace('sock-', '');
+            if(connections[inPort]) {
+                connections[inPort] = null;
+                this.classList.remove('connected');
+                msgBox.innerHTML = `【手順】配線を外しました。`;
+                msgBox.style.backgroundColor = "#FEF3C7";
+                msgBox.style.borderColor = "#F59E0B";
+                updateLines();
+                document.getElementById('wiring-output').innerHTML = "---";
+            }
+        });
+    });
+
+    function updateLines() {
+        svgLayer.innerHTML = ''; 
+        if(!document.getElementById('wiring-container').classList.contains('active')) return;
+
+        for (let inPort in connections) {
+            if (connections[inPort]) {
+                const outPort = connections[inPort];
+                const outEl = document.querySelector(`.socket.out[data-port="${outPort}"]`);
+                const inEl = document.getElementById(`sock-${inPort}`);
+                
+                if (outEl && inEl) {
+                    const p1 = getSocketPos(outEl);
+                    const p2 = getSocketPos(inEl);
+
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute('x1', p1.x); line.setAttribute('y1', p1.y);
+                    line.setAttribute('x2', p2.x); line.setAttribute('y2', p2.y);
+                    line.setAttribute('stroke', '#10B981');
+                    line.setAttribute('stroke-width', '4');
+                    svgLayer.appendChild(line);
+                }
+            }
+        }
+    }
+    window.addEventListener('resize', updateLines);
+
+    function runWiring() {
+        const vals = {
+            A: parseFloat(document.getElementById('val-A').innerText),
+            B: parseFloat(document.getElementById('val-B').innerText),
+            C: parseFloat(document.getElementById('val-C').innerText),
+            D: parseFloat(document.getElementById('val-D').innerText)
+        };
+
+        const outEl = document.getElementById('wiring-output');
+        let resHtml = "";
+        let calculated = false;
+
+        if (connections.add1 && connections.add2) {
+            resHtml += `足し算結果: <span style="color:#2563EB;">${vals[connections.add1] + vals[connections.add2]}</span><br><br>`;
+            calculated = true;
+        }
+        if (connections.sub1 && connections.sub2) {
+            resHtml += `引き算結果: <span style="color:#EF4444;">${vals[connections.sub1] - vals[connections.sub2]}</span>`;
+            calculated = true;
+        }
+
+        if (calculated) {
+            outEl.innerHTML = resHtml;
+            outEl.style.color = "#333";
+        } else {
+            outEl.innerHTML = "配線未完了";
+            outEl.style.color = "red";
+        }
+    }
+
+    // --- ノイマン型ロジック（アニメーション追加） ---
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    async function runNeumann() {
+        const btn = document.getElementById('run-btn');
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+
+        const mem = {
+            '0x00': parseFloat(document.getElementById('mem-00').innerText),
+            '0x01': parseFloat(document.getElementById('mem-01').innerText),
+            '0x02': parseFloat(document.getElementById('mem-02').innerText),
+            '0x03': parseFloat(document.getElementById('mem-03').innerText)
+        };
+        
+        const pcDisplay = document.getElementById('pc-display');
+        const status = document.getElementById('cpu-status');
+        const output = document.getElementById('neumann-output');
+        
+        // リセット
+        document.querySelectorAll('.memory-table tbody tr').forEach(tr => tr.style.boxShadow = 'none');
+        output.innerText = "---";
+
+        // Step 1: 命令読み込み
+        let pc = '0x04';
+        pcDisplay.innerText = pc;
+        status.innerHTML = `プログラムカウンタ(PC)の指すアドレス <b>${pc}</b> の命令を読み込みます。`;
+        document.getElementById('tr-04').style.boxShadow = 'inset 0 0 0 3px #EF4444';
+        await sleep(2000);
+        
+        const op = document.getElementById('mem-04').value;
+        status.innerHTML += `<br>➔ 命令は <b>${op}</b> と解釈されました。`;
+        await sleep(1500);
+        document.getElementById('tr-04').style.boxShadow = 'none';
+
+        // Step 2: 対象アドレス1の読み込み
+        pc = '0x05';
+        pcDisplay.innerText = pc;
+        status.innerHTML = `PCが <b>${pc}</b> に進みました。対象アドレス1を読み込みます。`;
+        document.getElementById('tr-05').style.boxShadow = 'inset 0 0 0 3px #EF4444';
+        await sleep(2000);
+
+        const addr1 = document.getElementById('mem-05').value;
+        document.getElementById('tr-05').style.boxShadow = 'none';
+        
+        const trData1 = document.getElementById('tr-' + addr1.replace('0x', ''));
+        trData1.style.boxShadow = 'inset 0 0 0 3px #10B981';
+        const val1 = mem[addr1];
+        status.innerHTML += `<br>➔ アドレス <b>${addr1}</b> からデータ <b>${val1}</b> を読み出しました。`;
+        await sleep(2000);
+        trData1.style.boxShadow = 'none';
+
+        // Step 3: 対象アドレス2の読み込み
+        pc = '0x06';
+        pcDisplay.innerText = pc;
+        status.innerHTML = `PCが <b>${pc}</b> に進みました。対象アドレス2を読み込みます。`;
+        document.getElementById('tr-06').style.boxShadow = 'inset 0 0 0 3px #EF4444';
+        await sleep(2000);
+
+        const addr2 = document.getElementById('mem-06').value;
+        document.getElementById('tr-06').style.boxShadow = 'none';
+
+        const trData2 = document.getElementById('tr-' + addr2.replace('0x', ''));
+        trData2.style.boxShadow = 'inset 0 0 0 3px #10B981';
+        const val2 = mem[addr2];
+        status.innerHTML += `<br>➔ アドレス <b>${addr2}</b> からデータ <b>${val2}</b> を読み出しました。`;
+        await sleep(2000);
+        trData2.style.boxShadow = 'none';
+
+        // Step 4: 演算実行
+        pc = '完了';
+        pcDisplay.innerText = pc;
+        status.innerHTML = `演算装置で <b>${val1} ${op === 'ADD' ? '+' : '-'} ${val2}</b> を実行します。`;
+        await sleep(1500);
+
+        let res = 0;
+        if (op === 'ADD') res = val1 + val2;
+        if (op === 'SUB') res = val1 - val2;
+
+        status.innerHTML += `<br>➔ 実行完了！結果は <b>${res}</b> です。`;
+        output.innerText = res;
+        
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    }
+</script>
+</body>
+</html>

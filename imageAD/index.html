@@ -5,176 +5,244 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>画像のデジタル表現学習アプリ</title>
 <style>
-  :root {
-    --text-color: #374151;
-    --main-color: #2563EB;
-    --sub-color1: #DBEAFE;
-    --sub-color2: #1E3A8A;
-    --muted-color: #9CA3AF;
-    --accent-color: #EF4444;
-  }
-  body {
-    font-family: sans-serif;
-    color: var(--text-color);
-    background-color: #f9fafb;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  h1 {
-    color: var(--main-color);
-  }
-  .controls {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  label {
-    font-weight: bold;
-    color: var(--sub-color2);
-  }
-  select {
-    padding: 8px;
-    border: 1px solid var(--muted-color);
-    border-radius: 4px;
-    outline: none;
-    color: var(--text-color);
-  }
-  .checkbox-group {
-    display: flex;
-    gap: 10px;
-  }
-  .checkbox-group label {
-    font-weight: normal;
-    color: var(--text-color);
-    cursor: pointer;
-  }
-  canvas {
-    max-width: 100%;
-    border: 2px solid var(--sub-color1);
-    border-radius: 8px;
-  }
+    :root {
+        --text: #374151;
+        --main: #2563EB;
+        --sub1: #DBEAFE;
+        --sub2: #1E3A8A;
+        --muted: #9CA3AF;
+        --accent: #EF4444;
+        --icon: #646565;
+    }
+    body {
+        font-family: sans-serif;
+        color: var(--text);
+        background-color: #f9fafb;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        background-color: var(--sub1);
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        border-bottom: 2px solid var(--main);
+    }
+    header h1 {
+        margin: 0 0 0 10px;
+        color: var(--sub2);
+        font-size: 1.5rem;
+    }
+    .container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        padding: 2rem;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    .column {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    .settings-area {
+        display: flex;
+        gap: 3rem;
+        flex-wrap: wrap;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--muted);
+    }
+    .setting-box {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .setting-title {
+        font-weight: bold;
+        color: var(--main);
+    }
+    select {
+        padding: 0.5rem;
+        font-size: 1rem;
+        color: var(--text);
+        border: 1px solid var(--muted);
+        border-radius: 4px;
+        background-color: white;
+        font-family: inherit;
+        cursor: pointer;
+    }
+    .checkbox-group {
+        display: flex;
+        gap: 1.2rem;
+        padding-top: 0.3rem;
+    }
+    .checkbox-group label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        cursor: pointer;
+        color: var(--text);
+    }
+    input[type="checkbox"] {
+        cursor: pointer;
+        width: 1.1rem;
+        height: 1.1rem;
+    }
+    .viewer-box {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    .viewer-header {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 0.5rem;
+    }
+    .viewer-title {
+        font-weight: bold;
+        color: var(--main);
+    }
+    canvas {
+        max-width: 100%;
+        background-color: #f3f4f6;
+        border: 1px solid var(--muted);
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
 </style>
 </head>
 <body>
 
-<h1>画像のデジタル表現</h1>
+<header>
+    <!-- 画像/写真を表すアイコン -->
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--icon)" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+    </svg>
+    <h1>画像のデジタル表現</h1>
+</header>
 
-<div class="controls">
-  <div class="control-group">
-    <label for="resolution">解像度</label>
-    <select id="resolution">
-      <option value="1">標準</option>
-      <option value="0.5">中 (1/2)</option>
-      <option value="0.25">低 (1/4)</option>
-    </select>
-  </div>
-  
-  <div class="control-group">
-    <label for="gradation">階調</label>
-    <select id="gradation">
-      <option value="256">8ビット (256階調)</option>
-      <option value="16">4ビット (16階調)</option>
-      <option value="4">2ビット (4階調)</option>
-    </select>
-  </div>
+<div class="container">
+    <div class="column">
+        
+        <!-- 設定エリア -->
+        <div class="settings-area">
+            <div class="setting-box">
+                <label for="resolution" class="setting-title">解像度</label>
+                <select id="resolution">
+                    <option value="1">標準</option>
+                    <option value="0.5">中 (1/2)</option>
+                    <option value="0.25">低 (1/4)</option>
+                </select>
+            </div>
+            
+            <div class="setting-box">
+                <label for="gradation" class="setting-title">階調</label>
+                <select id="gradation">
+                    <option value="256">8ビット (256階調)</option>
+                    <option value="16">4ビット (16階調)</option>
+                    <option value="4">2ビット (4階調)</option>
+                </select>
+            </div>
 
-  <div class="control-group">
-    <label>RGBフィルタ</label>
-    <div class="checkbox-group">
-      <label><input type="checkbox" id="red" checked> R (赤)</label>
-      <label><input type="checkbox" id="green" checked> G (緑)</label>
-      <label><input type="checkbox" id="blue" checked> B (青)</label>
+            <div class="setting-box">
+                <span class="setting-title">RGBフィルタ</span>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="red" checked> R (赤)</label>
+                    <label><input type="checkbox" id="green" checked> G (緑)</label>
+                    <label><input type="checkbox" id="blue" checked> B (青)</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 画像表示エリア -->
+        <div class="viewer-box">
+            <div class="viewer-header">
+                <div class="viewer-title">画像プレビュー</div>
+            </div>
+            <canvas id="canvas"></canvas>
+        </div>
+
     </div>
-  </div>
 </div>
 
-<canvas id="canvas"></canvas>
-
 <script>
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  let originalImage = new Image();
-  
-  const resolutionSelect = document.getElementById('resolution');
-  const gradationSelect = document.getElementById('gradation');
-  const redCheck = document.getElementById('red');
-  const greenCheck = document.getElementById('green');
-  const blueCheck = document.getElementById('blue');
-
-  const controls = [resolutionSelect, gradationSelect, redCheck, greenCheck, blueCheck];
-  controls.forEach(control => control.addEventListener('change', drawImage));
-
-  originalImage.onload = () => {
-    canvas.width = originalImage.width;
-    canvas.height = originalImage.height;
-    drawImage();
-  };
-  
-  // 同じ階層にあるsample.jpgを読み込む
-  originalImage.src = 'sample.jpg';
-
-  function drawImage() {
-    if (!originalImage.complete) return;
-
-    const res = parseFloat(resolutionSelect.value);
-    const grad = parseInt(gradationSelect.value, 10);
-    const showR = redCheck.checked;
-    const showG = greenCheck.checked;
-    const showB = blueCheck.checked;
-
-    const w = canvas.width;
-    const h = canvas.height;
-
-    // 解像度を疑似的に下げるためのオフスクリーンキャンバス
-    const offCanvas = document.createElement('canvas');
-    const offCtx = offCanvas.getContext('2d');
-    offCanvas.width = Math.max(1, Math.floor(w * res));
-    offCanvas.height = Math.max(1, Math.floor(h * res));
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    let originalImage = new Image();
     
-    // 縮小して描画
-    offCtx.drawImage(originalImage, 0, 0, offCanvas.width, offCanvas.height);
+    const resolutionSelect = document.getElementById('resolution');
+    const gradationSelect = document.getElementById('gradation');
+    const redCheck = document.getElementById('red');
+    const greenCheck = document.getElementById('green');
+    const blueCheck = document.getElementById('blue');
+
+    const controls = [resolutionSelect, gradationSelect, redCheck, greenCheck, blueCheck];
+    controls.forEach(control => control.addEventListener('change', drawImage));
+
+    originalImage.onload = () => {
+        canvas.width = originalImage.width;
+        canvas.height = originalImage.height;
+        drawImage();
+    };
     
-    // ピクセル感を出すためにスムージングをオフにして元のサイズに拡大
-    ctx.imageSmoothingEnabled = false;
-    ctx.clearRect(0, 0, w, h);
-    ctx.drawImage(offCanvas, 0, 0, offCanvas.width, offCanvas.height, 0, 0, w, h);
+    // 同じ階層にあるsample.jpgを読み込む
+    originalImage.src = 'sample.jpg';
 
-    const imageData = ctx.getImageData(0, 0, w, h);
-    const data = imageData.data;
-    const step = 255 / (grad - 1);
+    function drawImage() {
+        if (!originalImage.complete) return;
 
-    for (let i = 0; i < data.length; i += 4) {
-      let r = showR ? data[i] : 0;
-      let g = showG ? data[i+1] : 0;
-      let b = showB ? data[i+2] : 0;
+        const res = parseFloat(resolutionSelect.value);
+        const grad = parseInt(gradationSelect.value, 10);
+        const showR = redCheck.checked;
+        const showG = greenCheck.checked;
+        const showB = blueCheck.checked;
 
-      // 階調の変換処理
-      if (grad < 256) {
-        r = Math.round(Math.round(r / step) * step);
-        g = Math.round(Math.round(g / step) * step);
-        b = Math.round(Math.round(b / step) * step);
-      }
+        const w = canvas.width;
+        const h = canvas.height;
 
-      data[i] = r;
-      data[i+1] = g;
-      data[i+2] = b;
+        // 解像度を疑似的に下げるためのオフスクリーンキャンバス
+        const offCanvas = document.createElement('canvas');
+        const offCtx = offCanvas.getContext('2d');
+        offCanvas.width = Math.max(1, Math.floor(w * res));
+        offCanvas.height = Math.max(1, Math.floor(h * res));
+        
+        // 縮小して描画
+        offCtx.drawImage(originalImage, 0, 0, offCanvas.width, offCanvas.height);
+        
+        // ピクセル感を出すためにスムージングをオフにして元のサイズに拡大
+        ctx.imageSmoothingEnabled = false;
+        ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(offCanvas, 0, 0, offCanvas.width, offCanvas.height, 0, 0, w, h);
+
+        const imageData = ctx.getImageData(0, 0, w, h);
+        const data = imageData.data;
+        const step = 255 / (grad - 1);
+
+        for (let i = 0; i < data.length; i += 4) {
+            let r = showR ? data[i] : 0;
+            let g = showG ? data[i+1] : 0;
+            let b = showB ? data[i+2] : 0;
+
+            // 階調の変換処理
+            if (grad < 256) {
+                r = Math.round(Math.round(r / step) * step);
+                g = Math.round(Math.round(g / step) * step);
+                b = Math.round(Math.round(b / step) * step);
+            }
+
+            data[i] = r;
+            data[i+1] = g;
+            data[i+2] = b;
+        }
+        ctx.putImageData(imageData, 0, 0);
     }
-    ctx.putImageData(imageData, 0, 0);
-  }
 </script>
 </body>
 </html>

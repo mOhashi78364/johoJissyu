@@ -2,170 +2,229 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>音のデジタル表現体験</title>
     <style>
         :root {
-            --text-color: #374151;
-            --main-color: #2563EB;
-            --sub-color1: #DBEAFE;
-            --sub-color2: #1E3A8A;
-            --unemphasized: #9CA3AF;
-            --accent-color: #EF4444;
-            --icon-color: #646565;
+            --text: #374151;
+            --main: #2563EB;
+            --sub1: #DBEAFE;
+            --sub2: #1E3A8A;
+            --muted: #9CA3AF;
+            --accent: #EF4444;
+            --icon: #646565;
         }
-
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            text-align: center;
-            background-color: var(--sub-color1);
-            color: var(--text-color);
+            font-family: sans-serif;
+            color: var(--text);
+            background-color: #f9fafb;
             margin: 0;
-            padding: 40px 20px;
+            padding: 0;
+        }
+        header {
+            background-color: var(--sub1);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid var(--main);
+        }
+        header h1 {
+            margin: 0 0 0 10px;
+            color: var(--sub2);
+            font-size: 1.5rem;
         }
         .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 30px;
-            background: #ffffff;
-            border-top: 8px solid var(--main-color);
-            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.1);
-            border-radius: 12px;
-        }
-        h2 {
-            color: var(--sub-color2);
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
-        canvas {
-            background: #ffffff;
-            border: 2px solid var(--unemphasized);
-            border-radius: 8px;
-            margin: 15px 0;
-            cursor: crosshair;
-            width: 100%;
-        }
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        .control-group {
-            background: var(--sub-color1);
-            padding: 15px 25px;
-            border-radius: 8px;
             display: flex;
             flex-direction: column;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .column {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .controls-top {
+            display: flex;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--muted);
             align-items: center;
-            justify-content: center;
-            border: 1px solid var(--main-color);
+            flex-wrap: wrap;
         }
         button {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 12px 28px;
-            font-size: 16px;
+            gap: 0.5rem;
+            padding: 0.5rem 1.5rem;
+            font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            border: 2px solid var(--main-color);
-            border-radius: 8px;
-            background-color: #ffffff;
-            color: var(--text-color);
+            border: 1px solid var(--muted);
+            border-radius: 4px;
+            background-color: white;
+            color: var(--text);
+            font-family: inherit;
             transition: all 0.2s ease;
         }
-        button:hover:not(:disabled) { 
-            background-color: var(--sub-color1); 
-            border-color: var(--sub-color2);
-            color: var(--sub-color2);
+        button:hover:not(:disabled) {
+            background-color: var(--sub1);
+            color: var(--sub2);
+            border-color: var(--main);
         }
-        button:disabled { 
-            border-color: var(--unemphasized);
-            background-color: #f9fafb;
-            color: var(--unemphasized);
-            cursor: not-allowed; 
-        }
-        svg { 
-            fill: var(--icon-color);
-        }
-        .ratio-display {
-            font-size: 22px;
-            font-weight: bold;
-            color: var(--accent-color);
-            margin-top: 5px;
-        }
-        select {
-            padding: 8px;
-            font-size: 15px;
-            color: var(--text-color);
-            border: 1px solid var(--unemphasized);
-            border-radius: 6px;
-            background-color: #ffffff;
-            margin-top: 5px;
-        }
-        select:disabled {
-            background-color: #f9fafb;
-            color: var(--unemphasized);
+        button:disabled {
+            background-color: #f3f4f6;
+            color: var(--muted);
             cursor: not-allowed;
         }
+        button svg {
+            fill: var(--icon);
+        }
+        button:hover:not(:disabled) svg {
+            fill: var(--sub2);
+        }
+        #status {
+            font-weight: bold;
+            color: var(--main);
+            margin: 0;
+            margin-left: auto;
+        }
+        .settings-area {
+            display: flex;
+            gap: 3rem;
+            flex-wrap: wrap;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--muted);
+        }
+        .setting-box {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .setting-title {
+            font-weight: bold;
+            color: var(--main);
+        }
+        select {
+            padding: 0.5rem;
+            font-size: 1rem;
+            color: var(--text);
+            border: 1px solid var(--muted);
+            border-radius: 4px;
+            background-color: white;
+            font-family: inherit;
+        }
+        select:disabled {
+            background-color: #f3f4f6;
+            color: var(--muted);
+            cursor: not-allowed;
+        }
+        .ratio-display {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        .viewer-box {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .viewer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .viewer-title {
+            font-weight: bold;
+            color: var(--main);
+        }
         .guide-text {
-            font-size: 14px;
-            color: var(--text-color);
-            background-color: var(--sub-color1);
-            padding: 10px;
-            border-radius: 6px;
-            display: inline-block;
-            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: var(--text);
+            background-color: #f3f4f6;
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+            margin: 0;
+        }
+        canvas {
+            width: 100%;
+            background-color: #f3f4f6;
+            border: 1px solid var(--muted);
+            border-radius: 4px;
+            cursor: crosshair;
+            box-sizing: border-box;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>音のデジタル表現体験</h2>
-    
-    <div class="controls">
-        <button id="btnPlay" disabled>
-            <svg width="20" height="20" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            再生
-        </button>
-        <button id="btnStop" disabled>
-            <svg width="20" height="20" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
-            停止
-        </button>
-    </div>
+<header>
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--icon)" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+    </svg>
+    <h1>音のデジタル表現体験</h1>
+</header>
 
-    <div class="controls">
-        <div class="control-group">
-            <label>量子化ビット数: <br>
+<div class="container">
+    <div class="column">
+        
+        <!-- 操作・ステータスエリア -->
+        <div class="controls-top">
+            <button id="btnPlay" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                再生
+            </button>
+            <button id="btnStop" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+                停止
+            </button>
+            <span id="status">音声ファイルを読み込んでいます...</span>
+        </div>
+
+        <!-- 設定エリア -->
+        <div class="settings-area">
+            <div class="setting-box">
+                <span class="setting-title">量子化ビット数</span>
                 <select id="bitDepth">
                     <option value="16">16ビット (標準)</option>
                     <option value="8">8ビット</option>
                     <option value="4">4ビット</option>
                 </select>
-            </label>
-        </div>
-        <div class="control-group">
-            <label>標本化周波数: <br>
+            </div>
+            <div class="setting-box">
+                <span class="setting-title">標本化周波数</span>
                 <select id="sampleRate">
                     <option value="1">44.1kHz (標準)</option>
                     <option value="0.5">1/2 (22.05kHz)</option>
                     <option value="0.25">1/4 (11.025kHz)</option>
                     <option value="0.125">1/8 (5.5125kHz)</option>
                 </select>
-            </label>
+            </div>
+            <div class="setting-box">
+                <span class="setting-title">ファイルサイズ</span>
+                <div style="padding-top: 0.3rem;">元データの <span class="ratio-display">約 <span id="fileSizeRatio">1</span> 分の 1</span></div>
+            </div>
         </div>
-        <div class="control-group">
-            <div>ファイルサイズは元データの</div>
-            <div class="ratio-display">約 <span id="fileSizeRatio">1</span> 分の 1</div>
-        </div>
-    </div>
 
-    <p id="status" style="font-weight: bold; color: var(--main-color);">音声ファイルを読み込んでいます...</p>
-    <p class="guide-text">💡 波形上を<strong>ドラッグ＆ドロップ</strong>して拡大（<strong>ダブルクリック</strong>で元に戻す）</p>
-    <canvas id="waveform" width="760" height="200"></canvas>
+        <!-- 波形表示エリア -->
+        <div class="viewer-box">
+            <div class="viewer-header">
+                <div class="viewer-title">波形表示</div>
+                <div class="guide-text">💡 波形上を<strong>ドラッグ＆ドロップ</strong>で拡大（<strong>ダブルクリック</strong>で元に戻す）</div>
+            </div>
+            <canvas id="waveform" width="1000" height="200"></canvas>
+        </div>
+
+    </div>
 </div>
 
 <script>
@@ -201,10 +260,10 @@
             processAudio();
             document.getElementById('btnPlay').disabled = false;
             document.getElementById('status').innerText = '準備完了！設定を変更して音や波形を確認しましょう。';
-            document.getElementById('status').style.color = "var(--sub-color2)";
+            document.getElementById('status').style.color = "var(--sub2)";
         } catch (e) {
             document.getElementById('status').innerText = 'エラー: sample.mp3が見つかりません。同じフォルダに配置し、ローカルサーバー経由で開いてください。';
-            document.getElementById('status').style.color = "var(--accent-color)";
+            document.getElementById('status').style.color = "var(--accent)";
         }
     };
 
@@ -259,14 +318,14 @@
         
         const centerY = height / 2;
         canvasCtx.beginPath();
-        canvasCtx.strokeStyle = 'var(--unemphasized)';
+        canvasCtx.strokeStyle = 'var(--muted)';
         canvasCtx.lineWidth = 1;
         canvasCtx.moveTo(0, centerY);
         canvasCtx.lineTo(width, centerY);
         canvasCtx.stroke();
 
         canvasCtx.beginPath();
-        canvasCtx.strokeStyle = 'var(--main-color)';
+        canvasCtx.strokeStyle = 'var(--main)';
         canvasCtx.lineWidth = 1.5;
         
         for (let i = 0; i < width; i++) {
@@ -286,12 +345,12 @@
     canvas.addEventListener('mousedown', (e) => {
         if (!processedBuffer) return;
         isDragging = true;
-        dragStartX = e.offsetX;
+        dragStartX = e.offsetX * (canvas.width / canvas.offsetWidth);
     });
 
     canvas.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
-        dragCurrentX = e.offsetX;
+        dragCurrentX = e.offsetX * (canvas.width / canvas.offsetWidth);
         
         drawWaveform(); 
 
@@ -302,7 +361,7 @@
     canvas.addEventListener('mouseup', (e) => {
         if (!isDragging) return;
         isDragging = false;
-        let dragEndX = e.offsetX;
+        let dragEndX = e.offsetX * (canvas.width / canvas.offsetWidth);
         
         if (Math.abs(dragEndX - dragStartX) > 10) {
             let leftX = Math.min(dragStartX, dragEndX);
@@ -356,14 +415,14 @@
         
         toggleControls(true);
         document.getElementById('status').innerText = '🎵 再生中...';
-        document.getElementById('status').style.color = "var(--main-color)";
+        document.getElementById('status').style.color = "var(--main)";
         
         // 音声が最後まで再生された時の処理
         sourceNode.onended = () => {
             isPlaying = false;
             toggleControls(false);
             document.getElementById('status').innerText = '停止しました';
-            document.getElementById('status').style.color = "var(--text-color)";
+            document.getElementById('status').style.color = "var(--text)";
         };
     });
 
@@ -375,7 +434,7 @@
             
             toggleControls(false);
             document.getElementById('status').innerText = '停止しました';
-            document.getElementById('status').style.color = "var(--text-color)";
+            document.getElementById('status').style.color = "var(--text)";
         }
     });
 

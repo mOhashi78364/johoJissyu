@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>論理回路シミュレータ</title>
+<style>
+    :root {
+        --text: #374151;
+        --main: #2563EB;
+        --sub1: #DBEAFE;
+        --sub2: #1E3A8A;
+        --muted: #9CA3AF;
+        --accent: #EF4444;
+        --icon: #646565;
+        --canvas-bg: #f9fafb;
+    }
+    body {
+        font-family: sans-serif;
+        color: var(--text);
+        background-color: var(--canvas-bg);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+    header {
+        background-color: var(--sub1);
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        border-bottom: 2px solid var(--main);
+        flex-shrink: 0;
+    }
+    header h1 {
+        margin: 0 0 0 10px;
+        color: var(--sub2);
+        font-size: 1.5rem;
+    }
+    .container {
+        display: flex;
+        flex: 1;
+        gap: 1rem;
+        padding: 1rem;
+        overflow: hidden;
+    }
+    .sidebar {
+        width: 250px;
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        flex-shrink: 0;
+        overflow-y: auto;
+    }
+    .canvas-container {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+        background-image: radial-gradient(var(--muted) 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+    .sidebar h2 {
+        font-size: 1.2rem;
+        margin: 0 0 0.5rem 0;
+        color: var(--sub2);
+        border-bottom: 1px solid var(--muted);
+        padding-bottom: 0.5rem;
+    }
+    .component-btn {
+        background-color: var(--canvas-bg);
+        border: 1px solid var(--muted);
+        padding: 0.5rem;
+        border-radius: 4px;
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: background-color 0.2s;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+    .component-btn:hover {
+        background-color: var(--sub1);
+    }
+    .component-btn svg {
+        pointer-events: none;
+    }
+    .action-btn {
+        background-color: var(--main);
+        color: white;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+        transition: background-color 0.2s;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    .action-btn:hover {
+        background-color: var(--sub2);
+    }
+    
+    /* 回路パーツのスタイル */
+    .gate {
+        position: absolute;
+        width: 60px;
+        height: 40px;
+        cursor: grab;
+        user-select: none;
+        z-index: 10;
+    }
+    .gate.selected .gate-icon-bg {
+        filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.8));
+    }
+    
+    /* ポート（端子）のスタイル */
+    .port {
+        width: 10px;
+        height: 10px;
+        background-color: white;
+        border: 2px solid var(--icon);
+        border-radius: 50%;
+        position: absolute;
+        cursor: crosshair;
+        z-index: 20;
+        transform: translate(-50%, -50%);
+        transition: 0.2s;
+    }
+    .port:hover {
+        background-color: var(--sub1);
+        border-color: var(--main);
+        transform: translate(-50%, -50%) scale(1.3);
+    }
+    
+    /* 出力値の表示スタイル */
+    .out-val-display {
+        position: absolute;
+        right: -15px;
+        top: -10px;
+        font-size: 12px;
+        font-family: monospace;
+        font-weight: bold;
+        color: var(--main);
+        pointer-events: none;
+        background-color: rgba(255,255,255,0.8);
+        border-radius: 2px;
+        padding: 0 2px;
+    }
+
+    /* SVG 配線レイヤー */
+    #wire-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 5;
+    }
+    .wire {
+        fill: none;
+        stroke: var(--text);
+        stroke-width: 3;
+        pointer-events: stroke;
+        cursor: pointer;
+    }
+    .wire.active { stroke: #10B981; }
+    .wire.selected { stroke: var(--accent); stroke-dasharray: 5,5; }
+    .wire-temp {
+        fill: none;
+        stroke: var(--muted);
+        stroke-width: 2;
+        stroke-dasharray: 4,4;
+    }
+
+    /* 範囲選択ボックス */
+    #selection-box {
+        position: absolute;
+        border: 1px dashed var(--main);
+        background-color: rgba(37, 99, 235, 0.1);
+        display: none;
+        pointer-events: none;
+        z-index: 100;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="6" width="20" height="12" rx="2" />
+        <path d="M6 12h4m4 0h4m-8-4v8" />
+    </svg>
+    <h1>論理回路シミュレータ</h1>
+</header>
+
+<div class="container">
+    <div class="sidebar">
+        <h2>パーツ</h2>
+        <div id="palette"></div>
+        
+        <h2 style="margin-top: 1rem;">操作</h2>
+        <button class="action-btn" onclick="saveCircuit()">回路を保存</button>
+        <button class="action-btn" onclick="document.getElementById('load-file').click()">読み込み</button>
+        <input type="file" id="load-file" accept=".json" onchange="loadCircuit(event)" style="display: none;">
+        
+        <div style="font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; line-height: 1.5;">
+            <p style="margin:0;">※パレットからD&Dで配置</p>
+            <p style="margin:0;">※端子(丸)をドラッグして配線</p>
+            <p style="margin:0;">※入力スイッチをクリックで反転</p>
+            <p style="margin:0;">※何もない場所をドラッグで範囲選択</p>
+            <p style="margin:0;">※選択して <kbd>Delete</kbd> で削除</p>
+        </div>
+    </div>
+    
+    <div class="canvas-container" id="canvas">
+        <svg id="wire-layer">
+            <path id="temp-wire" class="wire-temp" d=""></path>
+        </svg>
+        <div id="gate-layer"></div>
+        <div id="selection-box"></div>
+    </div>
+</div>
+
+<script>
+    function getGateSVG(type, state = 0) {
+        const stroke = "var(--icon)";
+        let svg = `<svg width="60" height="40" viewBox="0 0 60 40" class="gate-icon-bg" style="pointer-events: none;">`;
+        if (type === 'IN') {
+            const bg = state ? 'var(--main)' : 'white';
+            const fg = state ? 'white' : 'var(--main)';
+            svg += `<rect class="toggle-btn" x="5" y="8" width="28" height="24" fill="${bg}" stroke="${stroke}" stroke-width="2" rx="4" style="pointer-events: auto; cursor: pointer;"/>
+                    <text x="19" y="24.5" fill="${fg}" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" style="pointer-events: none;">${state}</text>
+                    <line x1="33" y1="20" x2="60" y2="20" stroke="${stroke}" stroke-width="2"/>`;
+        } else if (type === 'OUT') {
+            const color = state ? 'var(--accent)' : 'white';
+            const textColor = state ? 'white' : 'var(--icon)';
+            svg += `<circle cx="45" cy="20" r="10" fill="${color}" stroke="${stroke}" stroke-width="2"/>
+                    <text x="45" y="24.5" fill="${textColor}" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" style="pointer-events: none;">${state}</text>
+                    <line x1="0" y1="20" x2="35" y2="20" stroke="${stroke}" stroke-width="2"/>`;
+        } else if (type === 'AND') {
+            svg += `<path d="M 15 5 L 25 5 A 15 15 0 0 1 25 35 L 15 35 Z" fill="white" stroke="${stroke}" stroke-width="2"/>
+                    <line x1="0" y1="10" x2="15" y2="10" stroke="${stroke}" stroke-width="2"/>
+                    <line x1="0" y1="30" x2="15" y2="30" stroke="${stroke}" stroke-width="2"/>
+                    <line x1="40" y1="20" x2="60" y2="20" stroke="${stroke}" stroke-width="2"/>`;
+        } else if (type === 'OR') {
+            svg += `<path d="M 10 5 Q 20 20 10 35 Q 35 35 45 20 Q 35 5 10 5 Z" fill="white" stroke="${stroke}" stroke-width="2"/>
+                    <line x1="0" y1="10" x2="12" y2="10" stroke="${stroke}" stroke-width="2"/>
+                    <line x1="0" y1="30" x2="12" y2="30" stroke="${stroke}" stroke-width="2"/>
+                    <line x1="45" y1="20" x2="60" y2="20" stroke="${stroke}" stroke-width="2"/>`;
+        } else if (type === 'NOT') {
+            svg += `<polygon points="15,10 30,20 15,30" fill="white" stroke="${stroke}" stroke-width="2"/>
+                    <circle cx="34" cy="20" r="4" fill="white" stroke="${stroke}" stroke-width="2"/>
+                    <line x1="0" y1="20" x2="15" y2="20" stroke="${stroke}" stroke-width="2"/>
+                    <line x1="38" y1="20" x2="60" y2="20" stroke="${stroke}" stroke-width="2"/>`;
+        }
+        svg += `</svg>`;
+        return svg;
+    }
+
+    const gatePorts = {
+        'IN':  { in: [], out: [{x: 60, y: 20}] },
+        'OUT': { in: [{x: 0, y: 20}], out: [] },
+        'AND': { in: [{x: 0, y: 10}, {x: 0, y: 30}], out: [{x: 60, y: 20}] },
+        'OR':  { in: [{x: 0, y: 10}, {x: 0, y: 30}], out: [{x: 60, y: 20}] },
+        'NOT': { in: [{x: 0, y: 20}], out: [{x: 60, y: 20}] }
+    };
+
+    const tools = [
+        { type: 'IN', label: '入力' },
+        { type: 'OUT', label: 'LED(出力)' },
+        { type: 'AND', label: 'ANDゲート' },
+        { type: 'OR', label: 'ORゲート' },
+        { type: 'NOT', label: 'NOTゲート' }
+    ];
+    
+    const palette = document.getElementById('palette');
+    tools.forEach(t => {
+        const btn = document.createElement('div');
+        btn.className = 'component-btn';
+        btn.draggable = true;
+        btn.innerHTML = getGateSVG(t.type, 0) + `<span>${t.label}</span>`;
+        btn.ondragstart = (e) => {
+            e.dataTransfer.setData('gateType', t.type);
+        };
+        palette.appendChild(btn);
+    });
+
+    const canvas = document.getElementById('canvas');
+    const gateLayer = document.getElementById('gate-layer');
+    const wireLayer = document.getElementById('wire-layer');
+    const tempWire = document.getElementById('temp-wire');
+    const selectionBox = document.getElementById('selection-box');
+    
+    let gates = {};
+    let wires = [];
+    let nextGateId = 0;
+    
+    let selectedGates = new Set();
+    let selectedWires = new Set();
+    
+    let draggedGatesList = [];
+    let initialPositions = {};
+    let dragStartPos = { x: 0, y: 0 };
+    
+    let mouseDownPos = { x: 0, y: 0 }; 
+
+    let isSelecting = false;
+    let selectionStart = {x: 0, y: 0};
+    let wiringStart = null; 
+
+    canvas.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
+
+    canvas.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const type = e.dataTransfer.getData('gateType');
+        if(type) {
+            const rect = canvas.getBoundingClientRect();
+            addGate(type, e.clientX - rect.left - 30, e.clientY - rect.top - 20);
+        }
+    });
+
+    function evaluateLogic() {
+        let changed = false;
+        for (let step = 0; step < 10; step++) {
+            changed = false;
+            let nextInVals = {};
+            Object.values(gates).forEach(g => {
+                nextInVals[g.id] = new Array(g.inVals.length).fill(0);
+            });
+            
+            wires.forEach(w => {
+                const sourceGate = gates[w.from];
+                if(sourceGate && nextInVals[w.to]) {
+                    nextInVals[w.to][w.toPort] = sourceGate.outVals[w.fromPort];
+                }
+            });
+            
+            Object.values(gates).forEach(g => {
+                if (g.type !== 'IN') {
+                    for(let i=0; i<g.inVals.length; i++) {
+                        if(g.inVals[i] !== nextInVals[g.id][i]) {
+                            g.inVals[i] = nextInVals[g.id][i];
+                            changed = true;
+                        }
+                    }
+                }
+                
+                let oldOut = g.outVals[0];
+                if (g.type === 'IN') {
+                    g.outVals[0] = g.state ? 1 : 0;
+                } else if (g.type === 'AND') {
+                    g.outVals[0] = (g.inVals[0] && g.inVals[1]) ? 1 : 0;
+                } else if (g.type === 'OR') {
+                    g.outVals[0] = (g.inVals[0] || g.inVals[1]) ? 1 : 0;
+                } else if (g.type === 'NOT') {
+                    g.outVals[0] = g.inVals[0] ? 0 : 1;
+                } else if (g.type === 'OUT') {
+                    g.state = g.inVals[0]; 
+                }
+                
+                if (g.outVals[0] !== oldOut) {
+                    changed = true;
+                }
+            });
+            
+            if (!changed) break; 
+        }
+        render(); 
+    }
+
+    function addGate(type, x = 100, y = 100, state = 0, id = null) {
+        const gid = id !== null ? id : 'g' + nextGateId++;
+        const inCount = gatePorts[type].in.length;
+        const outCount = gatePorts[type].out.length;
+        
+        gates[gid] = {
+            id: gid, type, x, y, state,
+            inVals: new Array(inCount).fill(0),
+            outVals: new Array(outCount).fill(0)
+        };
+        selectedGates.clear();
+        selectedWires.clear();
+        selectedGates.add(gid);
+        evaluateLogic();
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+        if (e.target === canvas || e.target.id === 'wire-layer') {
+            selectedGates.clear();
+            selectedWires.clear();
+            
+            const rect = canvas.getBoundingClientRect();
+            isSelecting = true;
+            selectionStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+            selectionBox.style.left = selectionStart.x + 'px';
+            selectionBox.style.top = selectionStart.y + 'px';
+            selectionBox.style.width = '0px';
+            selectionBox.style.height = '0px';
+            selectionBox.style.display = 'block';
+            render();
+        }
+    });
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            selectedGates.forEach(gid => deleteGate(gid));
+            selectedWires.forEach(wid => deleteWire(wid));
+            selectedGates.clear();
+            selectedWires.clear();
+            render();
+        }
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        if (draggedGatesList.length > 0) {
+            const dx = mouseX - dragStartPos.x;
+            const dy = mouseY - dragStartPos.y;
+            draggedGatesList.forEach(gid => {
+                gates[gid].x = initialPositions[gid].x + dx;
+                gates[gid].y = initialPositions[gid].y + dy;
+            });
+            render();
+        } else if (isSelecting) {
+            const x = Math.min(mouseX, selectionStart.x);
+            const y = Math.min(mouseY, selectionStart.y);
+            const w = Math.abs(mouseX - selectionStart.x);
+            const h = Math.abs(mouseY - selectionStart.y);
+            selectionBox.style.left = x + 'px';
+            selectionBox.style.top = y + 'px';
+            selectionBox.style.width = w + 'px';
+            selectionBox.style.height = h + 'px';
+        }
+        
+        if (wiringStart) {
+            const startPos = getPortPosition(wiringStart.gateId, wiringStart.portType, wiringStart.portIndex);
+            tempWire.setAttribute('d', getOrthogonalPath(startPos.x, startPos.y, mouseX, mouseY));
+        }
+    });
+    
+    window.addEventListener('mouseup', (e) => {
+        if (isSelecting) {
+            isSelecting = false;
+            selectionBox.style.display = 'none';
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const x1 = Math.min(mouseX, selectionStart.x);
+            const x2 = Math.max(mouseX, selectionStart.x);
+            const y1 = Math.min(mouseY, selectionStart.y);
+            const y2 = Math.max(mouseY, selectionStart.y);
+            
+            Object.values(gates).forEach(g => {
+                if (g.x >= x1 && g.x + 60 <= x2 && g.y >= y1 && g.y + 40 <= y2) {
+                    selectedGates.add(g.id);
+                }
+            });
+            render();
+        }
+        
+        draggedGatesList = [];
+        if (wiringStart) {
+            wiringStart = null;
+            tempWire.setAttribute('d', '');
+        }
+    });
+
+    function deleteGate(gid) {
+        delete gates[gid];
+        wires = wires.filter(w => w.from !== gid && w.to !== gid);
+        evaluateLogic();
+    }
+    
+    function deleteWire(index) {
+        wires.splice(index, 1);
+        evaluateLogic();
+    }
+
+    function handlePortMouseDown(e, gateId, portType, portIndex) {
+        e.stopPropagation();
+        wiringStart = { gateId, portType, portIndex };
+    }
+
+    function handlePortMouseUp(e, gateId, portType, portIndex) {
+        e.stopPropagation();
+        if (wiringStart && wiringStart.gateId !== gateId && wiringStart.portType !== portType) {
+            let from, to, fromPort, toPort;
+            if (wiringStart.portType === 'out') {
+                from = wiringStart.gateId; fromPort = wiringStart.portIndex;
+                to = gateId; toPort = portIndex;
+            } else {
+                from = gateId; fromPort = portIndex;
+                to = wiringStart.gateId; toPort = wiringStart.portIndex;
+            }
+            
+            wires = wires.filter(w => !(w.to === to && w.toPort === toPort));
+            wires.push({ from, fromPort, to, toPort });
+            evaluateLogic();
+        }
+        wiringStart = null;
+        tempWire.setAttribute('d', '');
+    }
+
+    function getPortPosition(gateId, type, index) {
+        const g = gates[gateId];
+        if(!g) return {x:0, y:0};
+        const portDef = gatePorts[g.type][type][index];
+        return {
+            x: g.x + portDef.x,
+            y: g.y + portDef.y
+        };
+    }
+
+    function getOrthogonalPath(x1, y1, x2, y2) {
+        const midX = (x1 + x2) / 2;
+        return `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`;
+    }
+
+    function render() {
+        gateLayer.innerHTML = '';
+        Object.values(gates).forEach(g => {
+            const el = document.createElement('div');
+            el.id = g.id;
+            const isSelected = selectedGates.has(g.id);
+            el.className = `gate ${isSelected ? 'selected' : ''}`;
+            el.style.left = `${g.x}px`;
+            el.style.top = `${g.y}px`;
+            
+            el.addEventListener('mousedown', (e) => {
+                if(e.target.classList.contains('port')) return;
+                e.stopPropagation();
+                
+                mouseDownPos = { x: e.clientX, y: e.clientY };
+
+                if(e.target.classList.contains('toggle-btn') || e.target.tagName === 'text') return;
+
+                if (!selectedGates.has(g.id)) {
+                    if (!e.shiftKey) {
+                        selectedGates.clear();
+                        selectedWires.clear();
+                    }
+                    selectedGates.add(g.id);
+                }
+                
+                draggedGatesList = Array.from(selectedGates);
+                const rect = canvas.getBoundingClientRect();
+                dragStartPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+                
+                initialPositions = {};
+                draggedGatesList.forEach(gid => {
+                    initialPositions[gid] = { x: gates[gid].x, y: gates[gid].y };
+                });
+                render();
+            });
+            
+            el.addEventListener('click', (e) => {
+                const dx = e.clientX - mouseDownPos.x;
+                const dy = e.clientY - mouseDownPos.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 3 && g.type === 'IN' && (e.target.classList.contains('toggle-btn') || e.target.tagName === 'text')) {
+                    g.state = g.state ? 0 : 1;
+                    evaluateLogic();
+                }
+            });
+            
+            let content = getGateSVG(g.type, g.state);
+            
+            const inPorts = gatePorts[g.type].in;
+            inPorts.forEach((p, i) => {
+                content += `<div class="port port-in" style="left:${p.x}px; top:${p.y}px;" 
+                            onmousedown="handlePortMouseDown(event, '${g.id}', 'in', ${i})"
+                            onmouseup="handlePortMouseUp(event, '${g.id}', 'in', ${i})"></div>`;
+            });
+            
+            const outPorts = gatePorts[g.type].out;
+            outPorts.forEach((p, i) => {
+                content += `<div class="port port-out" style="left:${p.x}px; top:${p.y}px;"
+                            onmousedown="handlePortMouseDown(event, '${g.id}', 'out', ${i})"
+                            onmouseup="handlePortMouseUp(event, '${g.id}', 'out', ${i})"></div>`;
+                if (g.type !== 'OUT') {
+                    content += `<div class="out-val-display">${g.outVals[i]}</div>`;
+                }
+            });
+            
+            el.innerHTML = content;
+            gateLayer.appendChild(el);
+        });
+        
+        const svgWires = document.createDocumentFragment();
+        wires.forEach((w, idx) => {
+            const p1 = getPortPosition(w.from, 'out', w.fromPort);
+            const p2 = getPortPosition(w.to, 'in', w.toPort);
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', getOrthogonalPath(p1.x, p1.y, p2.x, p2.y));
+            
+            const val = gates[w.from] ? gates[w.from].outVals[w.fromPort] : 0;
+            let className = 'wire';
+            if(val) className += ' active';
+            if(selectedWires.has(idx)) className += ' selected';
+            
+            path.setAttribute('class', className);
+            path.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                if(!e.shiftKey) {
+                    selectedGates.clear();
+                    selectedWires.clear();
+                }
+                selectedWires.add(idx);
+                render();
+            });
+            svgWires.appendChild(path);
+        });
+        
+        wireLayer.innerHTML = '';
+        wireLayer.appendChild(tempWire);
+        wireLayer.appendChild(svgWires);
+    }
+    
+    window.saveCircuit = function() {
+        const data = JSON.stringify({ gates, wires, nextGateId });
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'circuit.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+    
+    window.loadCircuit = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                gates = data.gates || {};
+                wires = data.wires || [];
+                nextGateId = data.nextGateId || 0;
+                selectedGates.clear();
+                selectedWires.clear();
+                evaluateLogic();
+            } catch (err) {
+                alert('ファイルの読み込みに失敗しました。');
+            }
+            event.target.value = ''; 
+        };
+        reader.readAsText(file);
+    };
+    
+    evaluateLogic();
+</script>
+</body>
+</html>

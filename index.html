@@ -3,23 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>情報の実習ページ</title>
+    <title>Informatics Study Portal</title>
+    <!-- Playfair Display（タイトル用）を追加 -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Poppins:wght@400;600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* * カラーパレット設定 
-         * 指定された配色を変数として定義しています。
-         */
+        /* カラーパレット設定 */
         :root {
-            --textColor: #374151;   /* 文字色 */
-            --mainColor: #2563EB;   /* メインカラー */
-            --subColor1: #DBEAFE;   /* サブカラー1 */
-            --subColor2: #1E3A8A;   /* サブカラー2 */
-            --baseColor: #F0F2F5;   /* ベースカラー */
-            /* --accentColor は使用しませんが、拡張用に残しておいても構いません */
+            --textColor: #2D3748;   /* 文字色 */
+            --mainColor: #3182CE;   /* メインカラー */
+            --subColor1: #EBF8FF;   /* サブカラー1（淡いブルー） */
+            --subColor2: #1A365D;   /* サブカラー2（深いネイビー） */
+            --baseColor: #F7FAFC;   /* 背景色 */
+            --accentColor: #ED8936; /* アクセントカラー（オレンジ） */
+            --white: #FFFFFF;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* 基本設定 */
         body {
-            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            font-family: 'Poppins', 'Noto Sans JP', "Helvetica Neue", Arial, sans-serif;
             background-color: var(--baseColor);
             color: var(--textColor);
             margin: 0;
@@ -27,163 +31,253 @@
             line-height: 1.6;
         }
 
-        /* ヘッダーデザイン */
+        /* ヘッダーデザイン（ここは画像を使用） */
         header {
-            background-color: var(--mainColor);
-            color: white;
-            padding: 1.5rem 1rem;
+            position: relative;
+            background-image: url(sample.jpg);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            height: 50vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
+        header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)); 
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            padding: 0 2rem;
+        }
+
+        /* タイトルに雰囲気のあるフォントを適用 */
         header h1 {
             margin: 0;
-            font-size: 1.5rem;
+            font-family: 'Playfair Display', serif;
+            font-size: 3.2rem; /* フォントに合わせて少しサイズを大きく */
+            font-weight: 700;
+            /*font-style: italic;*/ /* 斜体にして雰囲気を強調 */
             letter-spacing: 0.05em;
-        }
-
-        header p {
-            margin: 0.5rem 0 0;
-            font-size: 0.9rem;
-            color: var(--subColor1);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* テキストに少し影をつけて読みやすく */
         }
 
         /* メインコンテンツエリア */
         .container {
-            max-width: 1000px;
-            margin: 2rem auto;
-            padding: 0 1rem;
+            max-width: 1100px;
+            margin: -60px auto 4rem;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 2;
         }
 
         /* グリッドレイアウト */
         .grid-wrapper {
             display: grid;
-            /* 画面幅に合わせて列数を自動調整 */
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
         }
 
-        /* カードデザイン（統一デザイン） */
+        /* 画像なしカードデザイン */
         .card {
-            background-color: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
             text-decoration: none;
             color: var(--textColor);
-            border-top: 4px solid var(--subColor2); /* すべてこの色で統一 */
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        /* カード上部のグラデーションバー */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--mainColor), var(--subColor1));
+            transition: var(--transition);
         }
 
         /* ホバー時の動き */
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+            border-color: transparent;
         }
 
-        .card-content {
-            padding: 1.5rem;
-            flex-grow: 1;
+        /* ホバー時に上部のバーが少し太くなり、色が変わる */
+        .card:hover::before {
+            height: 8px;
+            background: linear-gradient(90deg, var(--accentColor), var(--mainColor));
         }
 
         .card-title {
             color: var(--subColor2);
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.4;
             display: block;
         }
 
         .card-desc {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            color: #4A5568;
+            margin-bottom: 2rem;
+            flex-grow: 1;
+        }
+
+        /* カード下部（タグと矢印のレイアウト） */
+        .card-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            border-top: 1px solid #EDF2F7;
+            padding-top: 1.25rem;
         }
 
         .card-tag {
             display: inline-block;
             background-color: var(--subColor1);
-            color: var(--subColor2);
-            font-size: 0.75rem;
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
+            color: var(--mainColor);
+            font-size: 0.8rem;
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        /* 矢印アイコン */
+        .card-arrow {
+            color: var(--mainColor);
+            font-size: 1.25rem;
             font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+
+        /* ホバー時に矢印が右に動く */
+        .card:hover .card-arrow {
+            transform: translateX(6px);
+            color: var(--accentColor);
         }
 
         /* フッター */
         footer {
             text-align: center;
-            padding: 2rem;
-            font-size: 0.8rem;
-            color: #888;
-            margin-top: 2rem;
+            padding: 3rem 1rem;
+            font-size: 0.9rem;
+            color: #A0AEC0;
+            background-color: var(--white);
+            margin-top: 4rem;
+            border-top: 1px solid #EDF2F7;
         }
 
         /* スマホ向けの微調整 */
         @media (max-width: 600px) {
-            header h1 { font-size: 1.25rem; }
-            .container { margin-top: 1rem; }
+            header { height: 40vh; }
+            header h1 { font-size: 2.2rem; }
+            .container { margin-top: -30px; padding: 0 1rem; }
+            .grid-wrapper { gap: 1.5rem; }
+            .card { padding: 1.5rem; }
+            .card-title { font-size: 1.15rem; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>情報の実習ページ</h1>
-        <p>Informatics Study Portal</p>
+        <div class="header-content">
+            <h1>Informatics Study Portal</h1>
+        </div>
     </header>
 
     <div class="container">
         <div class="grid-wrapper">
 
             <a href="./charCodeViewer/" class="card">
-                <div class="card-content">
-                    <span class="card-title">実習：文字の表現の中身を見る</span>
-                    <p class="card-desc">コンピュータはどのように文字を表現しているかを見てみる。</p>
+                <span class="card-title">実習：文字の表現の中身を見る</span>
+                <p class="card-desc">コンピュータはどのように文字を表現しているかを見てみる。</p>
+                <div class="card-bottom">
                     <span class="card-tag">文字コード</span>
+                    <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="grid-wrapper">
 
             <a href="./audioAD/" class="card">
-                <div class="card-content">
-                    <span class="card-title">実習：音のデジタル化体験</span>
-                    <p class="card-desc">音をデジタル化するときの条件が変わると、音はどう変わる？</p>
+                <span class="card-title">実習：音のデジタル化体験</span>
+                <p class="card-desc">音をデジタル化するときの条件が変わると、音はどう変わる？</p>
+                <div class="card-bottom">
                     <span class="card-tag">音のデジタル化</span>
+                    <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="grid-wrapper">
 
             <a href="./imageAD/" class="card">
-                <div class="card-content">
-                    <span class="card-title">実習：画像のデジタル化体験</span>
-                    <p class="card-desc">画像をデジタル化するときの条件が変わると、音はどう変わる？</p>
+                <span class="card-title">実習：画像のデジタル化体験</span>
+                <p class="card-desc">画像をデジタル化するときの条件が変わると、画像はどう変わる？</p>
+                <div class="card-bottom">
                     <span class="card-tag">画像のデジタル化</span>
+                    <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-        </div>
-    </div>
 
-    <div class="container">
-        <div class="grid-wrapper">
+            <a href="./imgCompress/" class="card">
+                <span class="card-title">実習：画質の違いを観察する</span>
+                <p class="card-desc">画像を圧縮すると、画質とファイルサイズはどう変わる？</p>
+                <div class="card-bottom">
+                    <span class="card-tag">圧縮</span>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </a>
+
+            <a href="./logiqIC/" class="card">
+                <span class="card-title">実習：コンピュータの歴史体験</span>
+                <p class="card-desc">初期のコンピュータと現代のコンピュータの仕組みの違いを体験する。</p>
+                <div class="card-bottom">
+                    <span class="card-tag">プログラム内臓方式</span>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </a>
+
+            <a href="./logiqIC/" class="card">
+                <span class="card-title">実習：論理回路シミュレータ</span>
+                <p class="card-desc">論理回路の動作をシミュレーションする</p>
+                <div class="card-bottom">
+                    <span class="card-tag">論理回路</span>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </a>
 
             <a href="./ikasamasugoroku/index.html" class="card">
-                <div class="card-content">
-                    <span class="card-title">実習：すごろくで遊ぶ</span>
-                    <p class="card-desc">すごろく遊びを通して、不確実な事象の解釈を学ぶ。</p>
+                <span class="card-title">実習：すごろくで遊ぶ</span>
+                <p class="card-desc">すごろく遊びを通して、不確実な事象の解釈を学ぶ。</p>
+                <div class="card-bottom">
                     <span class="card-tag">仮説検定</span>
+                    <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
+
         </div>
     </div>
 
