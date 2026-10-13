@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>色の表現</title>
+<style>
+    /* 添付ファイルと完全に一致させたカラーパレット・デザイントークン */
+    :root {
+        --text: #374151;
+        --main: #2563EB;
+        --sub1: #DBEAFE;
+        --sub2: #1E3A8A;
+        --muted: #9CA3AF;
+        --accent: #EF4444;
+        --icon: #646565;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: sans-serif;
+        color: var(--text);
+        background-color: #f9fafb;
+        margin: 0;
+        padding: 0;
+        line-height: 1.5;
+    }
+
+    header {
+        background-color: var(--sub1);
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        border-bottom: 2px solid var(--main);
+    }
+
+    header h1 {
+        margin: 0 0 0 10px;
+        color: var(--sub2);
+        font-size: 1.5rem;
+    }
+
+    .container {
+        display: flex;
+        gap: 2rem;
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* レスポンシブ対応：タブレット・スマートフォン向け */
+    @media (max-width: 900px) {
+        .container {
+            flex-direction: column;
+            padding: 1rem;
+            gap: 1.5rem;
+        }
+        header {
+            padding: 0.75rem 1rem;
+        }
+        header h1 {
+            font-size: 1.25rem;
+        }
+    }
+
+    .column {
+        flex: 1;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .section-border-bottom {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--muted);
+    }
+
+    .viewer-box {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .viewer-title {
+        font-weight: bold;
+        color: var(--main);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* ボタン共通スタイル */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--main);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.15s ease, transform 0.1s ease;
+        user-select: none;
+    }
+
+    .btn:hover {
+        background-color: var(--sub2);
+    }
+
+    .btn:active {
+        transform: scale(0.98);
+    }
+
+    /* 三角形キャンバス操作エリア */
+    .canvas-container {
+        position: relative;
+        width: 100%;
+        max-width: 440px;
+        margin: 0 auto;
+        aspect-ratio: 1 / 1;
+        touch-action: none; /* スマホ操作での画面スクロールを抑止 */
+    }
+
+    #triangleCanvas {
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
+        cursor: crosshair;
+        background-color: #111827;
+        box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    /* 混色プレビューカード（プレゼン・投影用） */
+    .color-preview-card {
+        width: 100%;
+        height: 280px;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: background-color 0.05s ease;
+    }
+
+    /* カラーコード表示エリア */
+    .code-display-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    @media (max-width: 480px) {
+        .code-display-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .code-card {
+        background-color: #f3f4f6;
+        border: 1px solid var(--muted);
+        border-radius: 4px;
+        padding: 0.75rem;
+    }
+
+    .code-card-label {
+        font-size: 0.8rem;
+        color: var(--icon);
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
+
+    .code-card-value {
+        font-family: monospace;
+        font-size: 1.1rem;
+        color: var(--sub2);
+        font-weight: bold;
+        word-break: break-all;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <!-- パレットアイコン -->
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--icon)" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.49 2 2 6.49 2 12C2 17.51 6.49 22 12 22C13.1 22 14 21.1 14 20C14 19.5 13.8 19.04 13.48 18.67C13.17 18.31 12.98 17.84 12.98 17.33C12.98 16.22 13.88 15.33 14.98 15.33H16.67C19.61 15.33 22 12.94 22 10C22 5.58 17.52 2 12 2ZM6.5 11.5C5.67 11.5 5 10.83 5 10C5 9.17 5.67 8.5 6.5 8.5C7.33 8.5 8 9.17 8 10C8 10.83 7.33 11.5 6.5 11.5ZM9.5 7.5C8.67 7.5 8 6.83 8 6C8 5.17 8.67 4.5 9.5 4.5C10.33 4.5 11 5.17 11 6C11 6.83 10.33 7.5 9.5 7.5ZM14.5 7.5C13.67 7.5 13 6.83 13 6C13 5.17 13.67 4.5 14.5 4.5C15.33 4.5 16 5.17 16 6C16 6.83 15.33 7.5 14.5 7.5ZM17.5 11.5C16.67 11.5 16 10.83 16 10C16 9.17 16.67 8.5 17.5 8.5C18.33 8.5 19 9.17 19 10C19 10.83 18.33 11.5 17.5 11.5Z"/>
+    </svg>
+    <h1>色の表現</h1>
+</header>
+
+<div class="container">
+    <!-- カラム1: 混色コントロール（RGBフィールド） -->
+    <div class="column" id="col1">
+        <div class="section-border-bottom">
+            <div style="font-weight: bold; font-size: 1.05rem;">混色コントロール（RGBフィールド）</div>
+            <div style="font-size: 0.85rem; color: var(--text); margin-top: 0.3rem;">
+                三角形の中のポインタをドラッグまたはタップして、赤・緑・青の光の混色を直感的に変化させましょう。
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="triangleCanvas" width="400" height="400"></canvas>
+        </div>
+    </div>
+
+    <!-- カラム2: 混色プレビュー＆カラーコード -->
+    <div class="column" id="col2">
+        <div class="section-border-bottom" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong style="font-size: 1.05rem;">混色プレビュー</strong>
+                <div style="font-size: 0.85rem; color: var(--text); margin-top: 0.3rem;">
+                    混色された光の色が大きく表示されます。
+                </div>
+            </div>
+            <!-- カラーコード表示/非表示トグルボタン -->
+            <button id="toggleCodeBtn" class="btn" type="button" onclick="toggleColorCode()">
+                カラーコードを表示
+            </button>
+        </div>
+
+        <!-- プレビュー表示エリア（色名ラベルなし） -->
+        <div id="colorPreview" class="color-preview-card" style="background-color: #FFFFFF;"></div>
+
+        <!-- デジタルカラーコード情報カード（初期状態は完全に非表示） -->
+        <div id="codeDisplaySection" class="viewer-box" style="display: none;">
+            <div class="viewer-title">デジタル数値表現（8bit / 24bitカラー）</div>
+            <div class="code-display-grid">
+                <div class="code-card">
+                    <div class="code-card-label">16進数カラーコード (HEX)</div>
+                    <div id="codeHex" class="code-card-value">#FFFFFF</div>
+                </div>
+                <div class="code-card">
+                    <div class="code-card-label">RGB 10進数指定 (0〜255)</div>
+                    <div id="codeRgb" class="code-card-value">rgb(255, 255, 255)</div>
+                </div>
+                <div class="code-card" style="grid-column: 1 / -1;">
+                    <div class="code-card-label">コンピュータ内部の2進数表現 (8bit × 3 = 24bit)</div>
+                    <div id="codeBinary" class="code-card-value" style="font-size: 0.95rem;">
+                        R: 11111111 | G: 11111111 | B: 11111111
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ----------------------------------------------------
+     * 1. 状態管理と定数定義
+     * ---------------------------------------------------- */
+    let isCodeVisible = false; // 初期値：非表示
+    let currentR = 255;
+    let currentG = 255;
+    let currentB = 255;
+
+    const canvas = document.getElementById('triangleCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 三角形の幾何座標（幅400 x 高さ400 の正三角形配置）
+    const PADDING = 45;
+    const vertexR = { x: 200, y: PADDING };
+    const vertexG = { x: PADDING, y: 400 - PADDING };
+    const vertexB = { x: 400 - PADDING, y: 400 - PADDING };
+
+    // 重心位置（白）
+    const centerPoint = {
+        x: (vertexR.x + vertexG.x + vertexB.x) / 3,
+        y: (vertexR.y + vertexG.y + vertexB.y) / 3
+    };
+
+    let pointerPos = { x: centerPoint.x, y: centerPoint.y };
+    let isDragging = false;
+    let offscreenCanvas = null;
+
+    /* ----------------------------------------------------
+     * 2. 重心座標系（Barycentric Coordinates）の計算
+     * ---------------------------------------------------- */
+    function computeBarycentric(p, a, b, c) {
+        const detT = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+        const u = ((b.y - c.y) * (p.x - c.x) + (c.x - b.x) * (p.y - c.y)) / detT;
+        const v = ((c.y - a.y) * (p.x - c.x) + (a.x - c.x) * (p.y - c.y)) / detT;
+        const w = 1.0 - u - v;
+        return { u, v, w };
+    }
+
+    function clampPointToTriangle(p, a, b, c) {
+        let { u, v, w } = computeBarycentric(p, a, b, c);
+        if (u >= 0 && v >= 0 && w >= 0) {
+            return { x: p.x, y: p.y };
+        }
+
+        function projectOnSegment(p, p1, p2) {
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const lenSq = dx * dx + dy * dy;
+            if (lenSq === 0) return { x: p1.x, y: p1.y };
+            let t = ((p.x - p1.x) * dx + (p.y - p1.y) * dy) / lenSq;
+            t = Math.max(0, Math.min(1, t));
+            return { x: p1.x + t * dx, y: p1.y + t * dy };
+        }
+
+        const projAB = projectOnSegment(p, a, b);
+        const projBC = projectOnSegment(p, b, c);
+        const projCA = projectOnSegment(p, c, a);
+
+        function distSq(p1, p2) {
+            return (p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2;
+        }
+
+        const dAB = distSq(p, projAB);
+        const dBC = distSq(p, projBC);
+        const dCA = distSq(p, projCA);
+
+        if (dAB <= dBC && dAB <= dCA) return projAB;
+        if (dBC <= dAB && dBC <= dCA) return projBC;
+        return projCA;
+    }
+
+    function barycentricToRGB(u, v, w) {
+        u = Math.max(0, u);
+        v = Math.max(0, v);
+        w = Math.max(0, w);
+
+        const sum = u + v + w;
+        if (sum === 0) return { r: 0, g: 0, b: 0 };
+        u /= sum;
+        v /= sum;
+        w /= sum;
+
+        const maxComponent = Math.max(u, v, w);
+        if (maxComponent === 0) return { r: 0, g: 0, b: 0 };
+
+        const scale = 255 / maxComponent;
+        const r = Math.min(255, Math.round(u * scale));
+        const g = Math.min(255, Math.round(v * scale));
+        const b = Math.min(255, Math.round(w * scale));
+
+        return { r, g, b };
+    }
+
+    /* ----------------------------------------------------
+     * 3. カラーマップの生成と描画
+     * ---------------------------------------------------- */
+    function createOffscreenTriangle() {
+        const offCanvas = document.createElement('canvas');
+        offCanvas.width = 400;
+        offCanvas.height = 400;
+        const oCtx = offCanvas.getContext('2d');
+        const imgData = oCtx.createImageData(400, 400);
+        const data = imgData.data;
+
+        for (let y = 0; y < 400; y++) {
+            for (let x = 0; x < 400; x++) {
+                const { u, v, w } = computeBarycentric({ x, y }, vertexR, vertexG, vertexB);
+                if (u < 0 || v < 0 || w < 0) continue;
+
+                const { r, g, b } = barycentricToRGB(u, v, w);
+                const idx = (y * 400 + x) * 4;
+                data[idx] = r;
+                data[idx + 1] = g;
+                data[idx + 2] = b;
+                data[idx + 3] = 255;
+            }
+        }
+        oCtx.putImageData(imgData, 0, 0);
+        return offCanvas;
+    }
+
+    function renderCanvas() {
+        ctx.clearRect(0, 0, 400, 400);
+
+        if (offscreenCanvas) {
+            ctx.drawImage(offscreenCanvas, 0, 0);
+        }
+
+        // 三角形の境界線
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(vertexR.x, vertexR.y);
+        ctx.lineTo(vertexG.x, vertexG.y);
+        ctx.lineTo(vertexB.x, vertexB.y);
+        ctx.closePath();
+        ctx.stroke();
+
+        // 頂点ラベル
+        ctx.font = "bold 13px sans-serif";
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.fillText("R (赤)", vertexR.x, vertexR.y - 8);
+
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillText("G (緑)", vertexG.x - 30, vertexG.y + 8);
+
+        ctx.textAlign = "right";
+        ctx.textBaseline = "top";
+        ctx.fillText("B (青)", vertexB.x + 30, vertexB.y + 8);
+
+        // 中心の白マーク
+        ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+        ctx.beginPath();
+        ctx.arc(centerPoint.x, centerPoint.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ポインタマーカー
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(pointerPos.x, pointerPos.y, 11, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+        ctx.shadowBlur = 6;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(pointerPos.x, pointerPos.y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = `rgb(${currentR}, ${currentG}, ${currentB})`;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(pointerPos.x, pointerPos.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = (currentR + currentG + currentB > 380) ? "#111827" : "#FFFFFF";
+        ctx.fill();
+        ctx.restore();
+    }
+
+    /* ----------------------------------------------------
+     * 4. 色の更新とUIへの反映
+     * ---------------------------------------------------- */
+    function updateColorFromPointer(x, y) {
+        pointerPos = clampPointToTriangle({ x, y }, vertexR, vertexG, vertexB);
+
+        const { u, v, w } = computeBarycentric(pointerPos, vertexR, vertexG, vertexB);
+        const rgb = barycentricToRGB(u, v, w);
+
+        currentR = rgb.r;
+        currentG = rgb.g;
+        currentB = rgb.b;
+
+        applyColorToUI();
+        renderCanvas();
+    }
+
+    function applyColorToUI() {
+        const previewCard = document.getElementById('colorPreview');
+        previewCard.style.backgroundColor = `rgb(${currentR}, ${currentG}, ${currentB})`;
+
+        // カラーコード表示中のみ数値を更新
+        if (isCodeVisible) {
+            const hexStr = `#${currentR.toString(16).padStart(2, '0')}${currentG.toString(16).padStart(2, '0')}${currentB.toString(16).padStart(2, '0')}`.toUpperCase();
+            document.getElementById('codeHex').textContent = hexStr;
+            document.getElementById('codeRgb').textContent = `rgb(${currentR}, ${currentG}, ${currentB})`;
+
+            const binR = currentR.toString(2).padStart(8, '0');
+            const binG = currentG.toString(2).padStart(8, '0');
+            const binB = currentB.toString(2).padStart(8, '0');
+            document.getElementById('codeBinary').textContent = `R: ${binR} | G: ${binG} | B: ${binB}`;
+        }
+    }
+
+    /* ----------------------------------------------------
+     * 5. カラーコード表示／非表示トグル機能
+     * ---------------------------------------------------- */
+    function toggleColorCode() {
+        isCodeVisible = !isCodeVisible;
+        const btn = document.getElementById('toggleCodeBtn');
+        const codeSection = document.getElementById('codeDisplaySection');
+
+        if (isCodeVisible) {
+            btn.textContent = "カラーコードを隠す";
+            btn.style.backgroundColor = "var(--sub2)";
+            codeSection.style.display = "flex";
+            applyColorToUI();
+        } else {
+            btn.textContent = "カラーコードを表示";
+            btn.style.backgroundColor = "var(--main)";
+            codeSection.style.display = "none";
+        }
+    }
+
+    /* ----------------------------------------------------
+     * 6. Pointer Events（PC・スマホ両対応）
+     * ---------------------------------------------------- */
+    function getCanvasCoordinates(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return {
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY
+        };
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        canvas.setPointerCapture(e.pointerId);
+        const { x, y } = getCanvasCoordinates(e);
+        updateColorFromPointer(x, y);
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        const { x, y } = getCanvasCoordinates(e);
+        updateColorFromPointer(x, y);
+    });
+
+    function endDrag(e) {
+        if (isDragging) {
+            isDragging = false;
+            try {
+                canvas.releasePointerCapture(e.pointerId);
+            } catch (err) {}
+        }
+    }
+
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', endDrag);
+
+    /* ----------------------------------------------------
+     * 7. 初期化実行
+     * ---------------------------------------------------- */
+    window.addEventListener('DOMContentLoaded', () => {
+        offscreenCanvas = createOffscreenTriangle();
+        updateColorFromPointer(centerPoint.x, centerPoint.y);
+    });
+</script>
+</body>
+</html>
