@@ -123,6 +123,38 @@
     .gate.selected .gate-icon-bg {
         filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.8));
     }
+
+    /* テキストボックスのスタイル */
+    .textbox-item {
+        position: absolute;
+        min-width: 60px;
+        min-height: 28px;
+        cursor: grab;
+        z-index: 15;
+        border-radius: 4px;
+        padding: 2px 6px;
+        box-sizing: border-box;
+        border: 1px solid transparent;
+    }
+    .textbox-item:hover {
+        border: 1px dashed var(--muted);
+    }
+    .textbox-item.selected {
+        border: 1px solid var(--accent);
+        background-color: rgba(239, 68, 68, 0.05);
+    }
+    .textbox-input {
+        background: transparent;
+        border: none;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.95rem;
+        font-weight: bold;
+        color: var(--text);
+        width: 100%;
+        resize: none;
+        white-space: pre;
+    }
     
     /* ポート（端子）のスタイル */
     .port {
@@ -184,6 +216,26 @@
         stroke-dasharray: 4,4;
     }
 
+    /* 配線調整用ハンドル（透明な広い当たり判定） */
+    .wire-handle-hitarea {
+        fill: none;
+        stroke: transparent;
+        stroke-width: 16;
+        cursor: ew-resize;
+        pointer-events: stroke;
+    }
+    .wire-handle-line {
+        fill: none;
+        stroke: var(--main);
+        stroke-width: 3;
+        opacity: 0;
+        transition: opacity 0.15s;
+        pointer-events: none;
+    }
+    .wire-group:hover .wire-handle-line {
+        opacity: 0.7;
+    }
+
     /* 範囲選択ボックス */
     #selection-box {
         position: absolute;
@@ -213,12 +265,14 @@
         <h2 style="margin-top: 1rem;">操作</h2>
         <button class="action-btn" onclick="saveCircuit()">回路を保存</button>
         <button class="action-btn" onclick="document.getElementById('load-file').click()">読み込み</button>
+        <button class="action-btn" style="background-color: var(--sub2);" onclick="loadExerciseCircuit()">練習問題を読み込む</button>
         <input type="file" id="load-file" accept=".json" onchange="loadCircuit(event)" style="display: none;">
         
         <div style="font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; line-height: 1.5;">
             <p style="margin:0;">※パレットからD&Dで配置</p>
             <p style="margin:0;">※端子(丸)をドラッグして配線</p>
-            <p style="margin:0;">※入力スイッチをクリックで反転</p>
+            <p style="margin:0;">※配線の縦ラインをドラッグで位置調整</p>
+            <p style="margin:0;">※テキストはクリック/ダブルクリックで編集</p>
             <p style="margin:0;">※何もない場所をドラッグで範囲選択</p>
             <p style="margin:0;">※選択して <kbd>Delete</kbd> で削除</p>
         </div>
@@ -229,6 +283,7 @@
             <path id="temp-wire" class="wire-temp" d=""></path>
         </svg>
         <div id="gate-layer"></div>
+        <div id="text-layer"></div>
         <div id="selection-box"></div>
     </div>
 </div>
@@ -282,7 +337,8 @@
         { type: 'OUT', label: 'LED(出力)' },
         { type: 'AND', label: 'ANDゲート' },
         { type: 'OR', label: 'ORゲート' },
-        { type: 'NOT', label: 'NOTゲート' }
+        { type: 'NOT', label: 'NOTゲート' },
+        { type: 'TEXT', label: 'テキスト' }
     ];
     
     const palette = document.getElementById('palette');
@@ -290,35 +346,49 @@
         const btn = document.createElement('div');
         btn.className = 'component-btn';
         btn.draggable = true;
-        btn.innerHTML = getGateSVG(t.type, 0) + `<span>${t.label}</span>`;
+        
+        if (t.type === 'TEXT') {
+            btn.innerHTML = `<svg width="60" height="40" viewBox="0 0 60 40" style="pointer-events: none;">
+                <text x="30" y="27" fill="var(--icon)" font-family="sans-serif" font-size="22" font-weight="bold" text-anchor="middle">T</text>
+            </svg><span>${t.label}</span>`;
+        } else {
+            btn.innerHTML = getGateSVG(t.type, 0) + `<span>${t.label}</span>`;
+        }
+        
         btn.ondragstart = (e) => {
-            e.dataTransfer.setData('gateType', t.type);
+            e.dataTransfer.setData('itemType', t.type);
         };
         palette.appendChild(btn);
     });
 
     const canvas = document.getElementById('canvas');
     const gateLayer = document.getElementById('gate-layer');
+    const textLayer = document.getElementById('text-layer');
     const wireLayer = document.getElementById('wire-layer');
     const tempWire = document.getElementById('temp-wire');
     const selectionBox = document.getElementById('selection-box');
     
     let gates = {};
+    let textboxes = {};
     let wires = [];
     let nextGateId = 0;
+    let nextTextId = 0;
     
     let selectedGates = new Set();
+    let selectedTexts = new Set();
     let selectedWires = new Set();
     
     let draggedGatesList = [];
+    let draggedTextsList = [];
     let initialPositions = {};
+    let initialTextPositions = {};
     let dragStartPos = { x: 0, y: 0 };
-    
     let mouseDownPos = { x: 0, y: 0 }; 
 
     let isSelecting = false;
     let selectionStart = {x: 0, y: 0};
     let wiringStart = null; 
+    let draggingWireIdx = null;
 
     canvas.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -326,10 +396,17 @@
 
     canvas.addEventListener('drop', (e) => {
         e.preventDefault();
-        const type = e.dataTransfer.getData('gateType');
-        if(type) {
-            const rect = canvas.getBoundingClientRect();
-            addGate(type, e.clientX - rect.left - 30, e.clientY - rect.top - 20);
+        const type = e.dataTransfer.getData('itemType');
+        if (!type) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const dropX = e.clientX - rect.left;
+        const dropY = e.clientY - rect.top;
+        
+        if (type === 'TEXT') {
+            addTextBox(dropX - 30, dropY - 14);
+        } else {
+            addGate(type, dropX - 30, dropY - 20);
         }
     });
 
@@ -393,14 +470,26 @@
             outVals: new Array(outCount).fill(0)
         };
         selectedGates.clear();
+        selectedTexts.clear();
         selectedWires.clear();
         selectedGates.add(gid);
         evaluateLogic();
     }
 
+    function addTextBox(x = 100, y = 100, text = 'テキスト', id = null) {
+        const tid = id !== null ? id : 't' + nextTextId++;
+        textboxes[tid] = { id: tid, x, y, text };
+        selectedGates.clear();
+        selectedTexts.clear();
+        selectedWires.clear();
+        selectedTexts.add(tid);
+        render();
+    }
+
     canvas.addEventListener('mousedown', (e) => {
         if (e.target === canvas || e.target.id === 'wire-layer') {
             selectedGates.clear();
+            selectedTexts.clear();
             selectedWires.clear();
             
             const rect = canvas.getBoundingClientRect();
@@ -419,8 +508,10 @@
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         if (e.key === 'Delete' || e.key === 'Backspace') {
             selectedGates.forEach(gid => deleteGate(gid));
-            selectedWires.forEach(wid => deleteWire(wid));
+            selectedTexts.forEach(tid => deleteTextBox(tid));
+            Array.from(selectedWires).sort((a,b) => b - a).forEach(wid => deleteWire(wid));
             selectedGates.clear();
+            selectedTexts.clear();
             selectedWires.clear();
             render();
         }
@@ -431,12 +522,19 @@
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
-        if (draggedGatesList.length > 0) {
+        if (draggingWireIdx !== null) {
+            wires[draggingWireIdx].midX = Math.round(mouseX);
+            render();
+        } else if (draggedGatesList.length > 0 || draggedTextsList.length > 0) {
             const dx = mouseX - dragStartPos.x;
             const dy = mouseY - dragStartPos.y;
             draggedGatesList.forEach(gid => {
                 gates[gid].x = initialPositions[gid].x + dx;
                 gates[gid].y = initialPositions[gid].y + dy;
+            });
+            draggedTextsList.forEach(tid => {
+                textboxes[tid].x = initialTextPositions[tid].x + dx;
+                textboxes[tid].y = initialTextPositions[tid].y + dy;
             });
             render();
         } else if (isSelecting) {
@@ -457,6 +555,10 @@
     });
     
     window.addEventListener('mouseup', (e) => {
+        if (draggingWireIdx !== null) {
+            draggingWireIdx = null;
+        }
+
         if (isSelecting) {
             isSelecting = false;
             selectionBox.style.display = 'none';
@@ -473,10 +575,16 @@
                     selectedGates.add(g.id);
                 }
             });
+            Object.values(textboxes).forEach(t => {
+                if (t.x >= x1 && t.x <= x2 && t.y >= y1 && t.y <= y2) {
+                    selectedTexts.add(t.id);
+                }
+            });
             render();
         }
         
         draggedGatesList = [];
+        draggedTextsList = [];
         if (wiringStart) {
             wiringStart = null;
             tempWire.setAttribute('d', '');
@@ -487,6 +595,11 @@
         delete gates[gid];
         wires = wires.filter(w => w.from !== gid && w.to !== gid);
         evaluateLogic();
+    }
+
+    function deleteTextBox(tid) {
+        delete textboxes[tid];
+        render();
     }
     
     function deleteWire(index) {
@@ -512,7 +625,7 @@
             }
             
             wires = wires.filter(w => !(w.to === to && w.toPort === toPort));
-            wires.push({ from, fromPort, to, toPort });
+            wires.push({ from, fromPort, to, toPort, midX: null });
             evaluateLogic();
         }
         wiringStart = null;
@@ -529,12 +642,13 @@
         };
     }
 
-    function getOrthogonalPath(x1, y1, x2, y2) {
-        const midX = (x1 + x2) / 2;
+    function getOrthogonalPath(x1, y1, x2, y2, customMidX = null) {
+        const midX = customMidX !== null ? customMidX : (x1 + x2) / 2;
         return `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`;
     }
 
     function render() {
+        // 1. ゲート描画
         gateLayer.innerHTML = '';
         Object.values(gates).forEach(g => {
             const el = document.createElement('div');
@@ -549,24 +663,29 @@
                 e.stopPropagation();
                 
                 mouseDownPos = { x: e.clientX, y: e.clientY };
-
                 if(e.target.classList.contains('toggle-btn') || e.target.tagName === 'text') return;
 
                 if (!selectedGates.has(g.id)) {
                     if (!e.shiftKey) {
                         selectedGates.clear();
+                        selectedTexts.clear();
                         selectedWires.clear();
                     }
                     selectedGates.add(g.id);
                 }
                 
                 draggedGatesList = Array.from(selectedGates);
+                draggedTextsList = Array.from(selectedTexts);
                 const rect = canvas.getBoundingClientRect();
                 dragStartPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
                 
                 initialPositions = {};
                 draggedGatesList.forEach(gid => {
                     initialPositions[gid] = { x: gates[gid].x, y: gates[gid].y };
+                });
+                initialTextPositions = {};
+                draggedTextsList.forEach(tid => {
+                    initialTextPositions[tid] = { x: textboxes[tid].x, y: textboxes[tid].y };
                 });
                 render();
             });
@@ -604,13 +723,74 @@
             el.innerHTML = content;
             gateLayer.appendChild(el);
         });
+
+        // 2. テキストボックス描画
+        textLayer.innerHTML = '';
+        Object.values(textboxes).forEach(t => {
+            const el = document.createElement('div');
+            el.id = t.id;
+            const isSelected = selectedTexts.has(t.id);
+            el.className = `textbox-item ${isSelected ? 'selected' : ''}`;
+            el.style.left = `${t.x}px`;
+            el.style.top = `${t.y}px`;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'textbox-input';
+            input.value = t.text;
+            input.size = Math.max(t.text.length + 2, 6);
+            
+            input.addEventListener('input', (e) => {
+                t.text = e.target.value;
+                input.size = Math.max(t.text.length + 2, 6);
+            });
+            input.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
+
+            el.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                if (!selectedTexts.has(t.id)) {
+                    if (!e.shiftKey) {
+                        selectedGates.clear();
+                        selectedTexts.clear();
+                        selectedWires.clear();
+                    }
+                    selectedTexts.add(t.id);
+                }
+
+                draggedGatesList = Array.from(selectedGates);
+                draggedTextsList = Array.from(selectedTexts);
+                const rect = canvas.getBoundingClientRect();
+                dragStartPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+
+                initialPositions = {};
+                draggedGatesList.forEach(gid => {
+                    initialPositions[gid] = { x: gates[gid].x, y: gates[gid].y };
+                });
+                initialTextPositions = {};
+                draggedTextsList.forEach(tid => {
+                    initialTextPositions[tid] = { x: textboxes[tid].x, y: textboxes[tid].y };
+                });
+                render();
+            });
+
+            el.appendChild(input);
+            textLayer.appendChild(el);
+        });
         
+        // 3. 配線描画
         const svgWires = document.createDocumentFragment();
         wires.forEach((w, idx) => {
             const p1 = getPortPosition(w.from, 'out', w.fromPort);
             const p2 = getPortPosition(w.to, 'in', w.toPort);
+            const midX = (w.midX !== undefined && w.midX !== null) ? w.midX : (p1.x + p2.x) / 2;
+            
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('class', 'wire-group');
+
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            path.setAttribute('d', getOrthogonalPath(p1.x, p1.y, p2.x, p2.y));
+            path.setAttribute('d', getOrthogonalPath(p1.x, p1.y, p2.x, p2.y, midX));
             
             const val = gates[w.from] ? gates[w.from].outVals[w.fromPort] : 0;
             let className = 'wire';
@@ -622,21 +802,55 @@
                 e.stopPropagation();
                 if(!e.shiftKey) {
                     selectedGates.clear();
+                    selectedTexts.clear();
                     selectedWires.clear();
                 }
                 selectedWires.add(idx);
                 render();
             });
-            svgWires.appendChild(path);
+            g.appendChild(path);
+
+            const minY = Math.min(p1.y, p2.y);
+            const maxY = Math.max(p1.y, p2.y);
+
+            const handleLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            handleLine.setAttribute('x1', midX);
+            handleLine.setAttribute('y1', minY);
+            handleLine.setAttribute('x2', midX);
+            handleLine.setAttribute('y2', maxY);
+            handleLine.setAttribute('class', 'wire-handle-line');
+            g.appendChild(handleLine);
+
+            const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            hitArea.setAttribute('x1', midX);
+            hitArea.setAttribute('y1', minY);
+            hitArea.setAttribute('x2', midX);
+            hitArea.setAttribute('y2', maxY);
+            hitArea.setAttribute('class', 'wire-handle-hitarea');
+            
+            hitArea.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                draggingWireIdx = idx;
+                if(!e.shiftKey) {
+                    selectedGates.clear();
+                    selectedTexts.clear();
+                    selectedWires.clear();
+                }
+                selectedWires.add(idx);
+                render();
+            });
+            g.appendChild(hitArea);
+
+            svgWires.appendChild(g);
         });
         
         wireLayer.innerHTML = '';
         wireLayer.appendChild(tempWire);
         wireLayer.appendChild(svgWires);
     }
-    
+
     window.saveCircuit = function() {
-        const data = JSON.stringify({ gates, wires, nextGateId });
+        const data = JSON.stringify({ gates, textboxes, wires, nextGateId, nextTextId });
         const blob = new Blob([data], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -654,9 +868,12 @@
             try {
                 const data = JSON.parse(e.target.result);
                 gates = data.gates || {};
+                textboxes = data.textboxes || {};
                 wires = data.wires || [];
                 nextGateId = data.nextGateId || 0;
+                nextTextId = data.nextTextId || 0;
                 selectedGates.clear();
+                selectedTexts.clear();
                 selectedWires.clear();
                 evaluateLogic();
             } catch (err) {
@@ -665,6 +882,29 @@
             event.target.value = ''; 
         };
         reader.readAsText(file);
+    };
+
+    window.loadExerciseCircuit = async function(filename = 'exercise.json') {
+        try {
+            const response = await fetch(filename, { cache: 'no-cache' });
+            if (!response.ok) {
+                throw new Error(`HTTPエラー: ${response.status}`);
+            }
+            const data = await response.json();
+            
+            gates = data.gates || {};
+            textboxes = data.textboxes || {};
+            wires = data.wires || [];
+            nextGateId = data.nextGateId || 0;
+            nextTextId = data.nextTextId || 0;
+            selectedGates.clear();
+            selectedTexts.clear();
+            selectedWires.clear();
+            evaluateLogic();
+        } catch (err) {
+            console.error(err);
+            alert(`練習問題データ (${filename}) の読み込みに失敗しました。\n※Webサーバー経由で開いているか、同一フォルダに ${filename} が配置されているか確認してください。`);
+        }
     };
     
     evaluateLogic();
