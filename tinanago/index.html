@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ちんあなごの ながさくらべ ～みかん何こぶん？～</title>
+  <style>
+    :root {
+      --bg-cream: #FFFDF5;
+      --bg-dots: #FFEED9;
+      --primary-orange: #FF9E44;
+      --primary-orange-shadow: #E07D24;
+      --soft-aqua: #7AD3E0;
+      --soft-aqua-shadow: #52B4C2;
+      --soft-pink: #FFAAA6;
+      --soft-pink-shadow: #E8837E;
+      --sand-color: #F8DE9E;
+      --sand-shadow: #E2BC67;
+      --card-bg: #FFFFFF;
+      --text-main: #5A4A42;
+      --border-color: #F0DFC8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Hiragino Maru Gothic ProN', 'Yu Gothic Round', 'M PLUS Rounded 1c', sans-serif;
+      background-color: var(--bg-cream);
+      background-image: radial-gradient(var(--bg-dots) 15%, transparent 16%);
+      background-size: 24px 24px;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: var(--primary-orange);
+      text-shadow: 2px 2px 0 #FFF, 4px 4px 0 rgba(255, 158, 68, 0.2);
+      letter-spacing: 1px;
+    }
+
+    .main-container {
+      width: 100%;
+      max-width: 820px;
+      background: var(--card-bg);
+      border-radius: 32px;
+      border: 4px solid var(--border-color);
+      box-shadow: 0 12px 28px rgba(90, 74, 66, 0.08);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ガイダンス・吹き出し */
+    .guidance-box {
+      background: #FFF9E6;
+      border: 3px dashed var(--primary-orange);
+      border-radius: 20px;
+      padding: 12px 18px;
+      text-align: center;
+      position: relative;
+    }
+
+    .guidance-step {
+      display: inline-block;
+      background: var(--primary-orange);
+      color: #FFF;
+      font-weight: bold;
+      font-size: 0.95rem;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 6px;
+    }
+
+    .guidance-text {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+
+    /* 画像・Canvasエリア */
+    .canvas-wrapper {
+      position: relative;
+      width: 100%;
+      min-height: 380px;
+      background: #F4FBFD;
+      border-radius: 24px;
+      border: 3px solid #E0F2F5;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: crosshair;
+    }
+
+    canvas {
+      max-width: 100%;
+      max-height: 520px;
+      display: block;
+    }
+
+    /* 操作ボタン */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .cute-btn {
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 22px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .btn-orange {
+      background: var(--primary-orange);
+      color: #FFF;
+      box-shadow: 0 5px 0 var(--primary-orange-shadow);
+    }
+
+    .btn-aqua {
+      background: var(--soft-aqua);
+      color: #FFF;
+      box-shadow: 0 5px 0 var(--soft-aqua-shadow);
+    }
+
+    .btn-pink {
+      background: var(--soft-pink);
+      color: #FFF;
+      box-shadow: 0 5px 0 var(--soft-pink-shadow);
+    }
+
+    .cute-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .cute-btn:disabled {
+      background: #DDD;
+      box-shadow: 0 5px 0 #BBB;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* 結果モーダル */
+    .result-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(90, 74, 66, 0.5);
+      backdrop-filter: blur(5px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .result-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .result-card {
+      background: #FFF;
+      width: 100%;
+      max-width: 680px;
+      border-radius: 36px;
+      border: 5px solid var(--primary-orange);
+      padding: 24px 20px;
+      text-align: center;
+      transform: scale(0.85);
+      transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .result-overlay.active .result-card {
+      transform: scale(1);
+    }
+
+    .result-title {
+      font-size: 1.8rem;
+      color: var(--primary-orange);
+    }
+
+    /* 砂からすぽーん！のアニメーションステージ */
+    .sand-stage {
+      position: relative;
+      width: 100%;
+      height: 150px;
+      background: linear-gradient(180deg, #E2F6FC 0%, #BFE7F6 75%, #F8DE9E 75%, #F4CE77 100%);
+      border-radius: 24px;
+      border: 3px solid #B4E1F1;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .sand-pile {
+      position: absolute;
+      bottom: -6px;
+      width: 160px;
+      height: 52px;
+      background: var(--sand-color);
+      border-radius: 50% 50% 0 0;
+      border-top: 4px solid #FFF5D0;
+      box-shadow: inset 0 -6px 0 var(--sand-shadow);
+      z-index: 10;
+    }
+
+    .pull-anago {
+      position: absolute;
+      bottom: 20px;
+      width: 48px;
+      height: 260px;
+      transform-origin: bottom center;
+      transform: translateY(160px);
+      transition: transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 5;
+    }
+
+    .pull-anago.pulled {
+      transform: translateY(-50px) rotate(82deg);
+      transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .stage-msg {
+      position: absolute;
+      top: 10px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: #0284C7;
+      text-shadow: 1px 1px 0 #FFF;
+      z-index: 20;
+    }
+
+    /* 横ならべ比較ステージ */
+    .comparison-stage {
+      background: #FFFDF7;
+      border: 3px solid #FFE6AF;
+      border-radius: 24px;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    .stage-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stage-row-label {
+      width: 72px;
+      font-weight: bold;
+      font-size: 0.85rem;
+      color: #9A3412;
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    .stage-track {
+      flex-grow: 1;
+      background: #F8FAFC;
+      border-radius: 16px;
+      border: 2px dashed #CBD5E1;
+      padding: 6px 10px;
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    /* 横たわるチンアナゴ */
+    .lying-anago-container {
+      display: flex;
+      align-items: center;
+      height: 42px;
+    }
+
+    .lying-anago-head {
+      width: 46px;
+      height: 34px;
+      flex-shrink: 0;
+    }
+
+    .lying-anago-body {
+      height: 24px;
+      background: repeating-linear-gradient(
+        90deg,
+        #FFFFFF,
+        #FFFFFF 28px,
+        #38BDF8 28px,
+        #38BDF8 40px
+      );
+      border-top: 3px solid #5A4A42;
+      border-bottom: 3px solid #5A4A42;
+      border-radius: 0 12px 12px 0;
+      position: relative;
+      transition: width 0.8s ease-out;
+    }
+
+    /* みかんリスト */
+    .orange-list {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mikan-unit {
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+      transform: scale(0);
+      animation: popIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0); opacity: 0; }
+      80% { transform: scale(1.18); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* バッジ */
+    .result-badge-mikan {
+      background: #FFF7ED;
+      border: 3px solid #FCD34D;
+      border-radius: 24px;
+      padding: 10px 24px;
+      display: inline-block;
+      margin: 0 auto;
+      min-width: 260px;
+    }
+
+    .badge-val {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #D97706;
+      display: inline-block;
+    }
+
+    .badge-val.pop-highlight {
+      animation: popHighlight 0.4s ease-out;
+    }
+
+    @keyframes popHighlight {
+      0% { transform: scale(0.85); opacity: 0.5; }
+      50% { transform: scale(1.2); color: #EA580C; }
+      100% { transform: scale(1); }
+    }
+
+    .file-input-hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🌿 ちんあなごの ながさくらべ 🍊</h1>
+  </header>
+
+  <div class="main-container">
+    <!-- ガイダンス -->
+    <div class="guidance-box">
+      <div id="step-badge" class="guidance-step">すてっぷ 1</div>
+      <div id="guidance-text" class="guidance-text">
+        おめめの はじとはじを 2かい ぽちっと おしてね！
+      </div>
+    </div>
+
+    <!-- Canvas表示 -->
+    <div class="canvas-wrapper" id="canvas-wrapper">
+      <canvas id="main-canvas"></canvas>
+    </div>
+
+    <!-- 操作ボタン -->
+    <div class="controls">
+      <button id="btn-undo" class="cute-btn btn-pink" disabled>↩ ひとつもどる</button>
+      <button id="btn-reset" class="cute-btn btn-pink">🔄 やりなおす</button>
+      <button id="btn-upload" class="cute-btn btn-aqua">📁 しゃしんを えらぶ</button>
+      <input type="file" id="file-input" class="file-input-hidden" accept="image/*">
+    </div>
+  </div>
+
+  <!-- 結果表示モーダル -->
+  <div class="result-overlay" id="result-modal">
+    <div class="result-card">
+      <div class="result-title">✨ すぽーーん！ ✨</div>
+
+      <!-- ① 砂から抜けるアニメーション -->
+      <div class="sand-stage">
+        <div class="stage-msg" id="stage-msg">すなから ひっこぬくよ〜！</div>
+        
+        <div class="sand-pile"></div>
+
+        <div class="pull-anago" id="pull-anago">
+          <svg viewBox="0 0 50 260" width="48" height="260">
+            <path d="M 12 250 L 12 35 C 12 10, 38 10, 38 35 L 38 250 Z" fill="#FFFFFF" stroke="#5A4A42" stroke-width="4"/>
+            <circle cx="20" cy="30" r="5" fill="#1E293B"/>
+            <circle cx="19" cy="28" r="1.8" fill="#FFF"/>
+            <path d="M 12 38 Q 18 42 22 38" fill="none" stroke="#5A4A42" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="28" cy="70" r="6" fill="#38BDF8"/>
+            <circle cx="20" cy="110" r="7" fill="#38BDF8"/>
+            <circle cx="29" cy="160" r="6" fill="#38BDF8"/>
+            <circle cx="22" cy="210" r="7" fill="#38BDF8"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- ② 横に並べて比べるインフォグラフィクス -->
+      <div class="comparison-stage">
+        <!-- チンアナゴ行 -->
+        <div class="stage-row">
+          <div class="stage-row-label">ちんあなご</div>
+          <div class="stage-track">
+            <div class="lying-anago-container" id="lying-anago">
+              <svg class="lying-anago-head" viewBox="0 0 55 40">
+                <path d="M 55 8 C 30 8, 12 14, 12 24 C 12 34, 30 36, 55 36 Z" fill="#FFF" stroke="#5A4A42" stroke-width="3"/>
+                <circle cx="28" cy="20" r="5" fill="#1E293B"/>
+                <circle cx="26" cy="18" r="1.8" fill="#FFF"/>
+                <circle cx="36" cy="26" r="3.5" fill="#FFAAA6" opacity="0.7"/>
+                <path d="M 18 24 Q 22 28 26 24" fill="none" stroke="#5A4A42" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <div class="lying-anago-body" id="anago-body"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- みかん行 -->
+        <div class="stage-row">
+          <div class="stage-row-label">みかん</div>
+          <div class="stage-track">
+            <div class="orange-list" id="mikan-container"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- みかんの合計個数（アニメーション完了時に表示） -->
+      <div class="result-badge-mikan">
+        <div class="badge-val" id="result-badge-text">かぞえちゅう… 🍊</div>
+      </div>
+
+      <button id="btn-replay" class="cute-btn btn-orange" style="font-size: 1.15rem; padding: 12px 32px; margin: 0 auto;">
+        🌟 もういっかい あそぶ！
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const EYE_DIAMETER_MM = 3.5;    // チンアナゴの目の直径 (mm)
+    const ORANGE_DIAMETER_CM = 5.0; // みかんの直径 (cm)
+
+    let state = {
+      step: 0,
+      eyePoints: [],
+      neckPoints: [],
+      scaleMmPerPx: 0,
+      orangeCount: 0
+    };
+
+    const canvas = document.getElementById('main-canvas');
+    const ctx = canvas.getContext('2d');
+    const wrapper = document.getElementById('canvas-wrapper');
+    const guidanceBadge = document.getElementById('step-badge');
+    const guidanceText = document.getElementById('guidance-text');
+    const btnUndo = document.getElementById('btn-undo');
+    const btnReset = document.getElementById('btn-reset');
+    const btnUpload = document.getElementById('btn-upload');
+    const fileInput = document.getElementById('file-input');
+    const resultModal = document.getElementById('result-modal');
+    const pullAnago = document.getElementById('pull-anago');
+    const stageMsg = document.getElementById('stage-msg');
+    const anagoBody = document.getElementById('anago-body');
+    const resultBadgeText = document.getElementById('result-badge-text');
+    const mikanContainer = document.getElementById('mikan-container');
+    const btnReplay = document.getElementById('btn-replay');
+
+    let currentImage = new Image();
+
+    function calcDistance(p1, p2) {
+      return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+    }
+
+    function renderCanvas() {
+      if (!currentImage.width || !currentImage.height) return;
+      canvas.width = currentImage.width;
+      canvas.height = currentImage.height;
+
+      ctx.drawImage(currentImage, 0, 0);
+      drawMeasurement(state.eyePoints, '#38BDF8', 'おめめ');
+      drawMeasurement(state.neckPoints, '#F59E0B', 'くび');
+    }
+
+    function drawMeasurement(points, color, label) {
+      if (points.length === 0) return;
+
+      points.forEach((p) => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        ctx.restore();
+      });
+
+      if (points.length === 2) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([8, 6]);
+        ctx.moveTo(points[0].x, points[0].y);
+        ctx.lineTo(points[1].x, points[1].y);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        const midX = (points[0].x + points[1].x) / 2;
+        const midY = (points[0].y + points[1].y) / 2;
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        ctx.fillText(label, midX, midY - 10);
+        ctx.restore();
+      }
+    }
+
+    function updateUI() {
+      btnUndo.disabled = (state.step === 0 && state.eyePoints.length === 0);
+
+      if (state.step === 0) {
+        guidanceBadge.textContent = 'すてっぷ 1';
+        guidanceBadge.style.background = 'var(--primary-orange)';
+        guidanceText.textContent = state.eyePoints.length === 0 
+          ? '① おめめの はじとはじを 2かい ぽちっと おしてね！' 
+          : 'もういっかい ぽちっ！ おめめの もうかたほうを おしてね！';
+      } else if (state.step === 1) {
+        guidanceBadge.textContent = 'すてっぷ 2';
+        guidanceBadge.style.background = 'var(--soft-aqua)';
+        guidanceText.textContent = state.neckPoints.length === 0
+          ? '② つぎは くび（からだ）の はばを 2かい ぽちっと おしてね！'
+          : 'あとすこし！ くびの もうはんたいがわを ぽちっ！';
+      } else {
+        guidanceBadge.textContent = 'できたよ！';
+        guidanceBadge.style.background = 'var(--soft-pink)';
+        guidanceText.textContent = 'けいそく かんりょう！ すぽーーん！';
+      }
+    }
+
+    function finalizeMeasurement() {
+      const eyePx = calcDistance(state.eyePoints[0], state.eyePoints[1]);
+      state.scaleMmPerPx = EYE_DIAMETER_MM / eyePx;
+
+      const neckPx = calcDistance(state.neckPoints[0], state.neckPoints[1]);
+      const neckWidthMm = neckPx * state.scaleMmPerPx;
+
+      const totalLengthCm = (neckWidthMm * 35) / 10;
+      state.orangeCount = totalLengthCm / ORANGE_DIAMETER_CM;
+
+      playPullOutAnimation();
+    }
+
+    function createOrangeSVG(fillRatio = 1.0, delayMs = 0) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mikan-unit';
+      wrapper.style.animationDelay = `${delayMs}ms`;
+
+      const clipId = 'clip-' + Math.random().toString(36).substr(2, 9);
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 40 40');
+      svg.setAttribute('width', '38');
+      svg.setAttribute('height', '38');
+
+      svg.innerHTML = `
+        <defs>
+          <clipPath id="${clipId}">
+            <rect x="0" y="0" width="${40 * fillRatio}" height="40" />
+          </clipPath>
+        </defs>
+        <g opacity="${fillRatio < 1.0 ? '0.25' : '1.0'}">
+          <ellipse cx="20" cy="8" rx="5" ry="3" fill="#48BB78" transform="rotate(-15 20 8)"/>
+          <circle cx="20" cy="22" r="14" fill="#FFA500"/>
+          <ellipse cx="18" cy="18" rx="4" ry="2" fill="#FED7AA" opacity="0.6"/>
+        </g>
+        ${fillRatio < 1.0 ? `
+        <g clip-path="url(#${clipId})">
+          <ellipse cx="20" cy="8" rx="5" ry="3" fill="#48BB78" transform="rotate(-15 20 8)"/>
+          <circle cx="20" cy="22" r="14" fill="#FFA500"/>
+          <ellipse cx="18" cy="18" rx="4" ry="2" fill="#FED7AA" opacity="0.6"/>
+        </g>` : ''}
+      `;
+      wrapper.appendChild(svg);
+      return wrapper;
+    }
+
+    // 演出シーケンス
+    function playPullOutAnimation() {
+      pullAnago.classList.remove('pulled');
+      stageMsg.textContent = 'すなから ひっこぬくよ〜！';
+      mikanContainer.innerHTML = '';
+      
+      // 最初は「0.0」を出さず、「かぞえちゅう…」にしておく
+      resultBadgeText.classList.remove('pop-highlight');
+      resultBadgeText.textContent = 'かぞえちゅう… 🍊';
+
+      const calculatedWidth = Math.max(60, state.orangeCount * 42);
+      anagoBody.style.width = '0px';
+
+      resultModal.classList.add('active');
+
+      // 1. 砂からすぽーんと抜く
+      setTimeout(() => {
+        pullAnago.classList.add('pulled');
+        stageMsg.textContent = 'すぽーーん！！ ぬけたー！';
+      }, 400);
+
+      // 2. 横にならべて比較開始
+      setTimeout(() => {
+        anagoBody.style.width = `${calculatedWidth}px`;
+        stageMsg.textContent = 'みかんと くらべっこ！';
+
+        const fullCount = Math.floor(state.orangeCount);
+        const remainder = state.orangeCount - fullCount;
+        let count = 0;
+        const interval = 220;
+
+        for (let i = 0; i < fullCount; i++) {
+          mikanContainer.appendChild(createOrangeSVG(1.0, count * interval));
+          count++;
+        }
+        if (remainder >= 0.05) {
+          mikanContainer.appendChild(createOrangeSVG(remainder, count * interval));
+          count++;
+        }
+
+        // 3. みかんが全部並び終わってから確定個数をドーンと表示
+        const finishDelay = count * interval + 250;
+        setTimeout(() => {
+          resultBadgeText.innerHTML = `およそ <span>${state.orangeCount.toFixed(1)}</span> こぶん！`;
+          resultBadgeText.classList.add('pop-highlight');
+          stageMsg.textContent = '✨ くらべっこ かんりょう！ ✨';
+        }, finishDelay);
+
+      }, 1600);
+    }
+
+    canvas.addEventListener('click', (e) => {
+      if (state.step >= 2) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      if (state.step === 0) {
+        state.eyePoints.push({ x, y });
+        if (state.eyePoints.length === 2) {
+          state.step = 1;
+        }
+      } else if (state.step === 1) {
+        state.neckPoints.push({ x, y });
+        if (state.neckPoints.length === 2) {
+          state.step = 2;
+          renderCanvas();
+          updateUI();
+          setTimeout(finalizeMeasurement, 300);
+          return;
+        }
+      }
+
+      renderCanvas();
+      updateUI();
+    });
+
+    btnUndo.addEventListener('click', () => {
+      if (state.step === 1) {
+        if (state.neckPoints.length > 0) {
+          state.neckPoints.pop();
+        } else {
+          state.step = 0;
+          state.eyePoints.pop();
+        }
+      } else if (state.step === 0 && state.eyePoints.length > 0) {
+        state.eyePoints.pop();
+      }
+      renderCanvas();
+      updateUI();
+    });
+
+    function resetAll() {
+      state.step = 0;
+      state.eyePoints = [];
+      state.neckPoints = [];
+      state.scaleMmPerPx = 0;
+      state.orangeCount = 0;
+      resultModal.classList.remove('active');
+      renderCanvas();
+      updateUI();
+    }
+    btnReset.addEventListener('click', resetAll);
+    btnReplay.addEventListener('click', resetAll);
+
+    function loadFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentImage = new Image();
+        currentImage.onload = () => resetAll();
+        currentImage.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    btnUpload.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        loadFile(e.target.files[0]);
+      }
+    });
+
+    wrapper.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      wrapper.style.borderColor = 'var(--primary-orange)';
+    });
+    wrapper.addEventListener('dragleave', () => {
+      wrapper.style.borderColor = '#E0F2F5';
+    });
+    wrapper.addEventListener('drop', (e) => {
+      e.preventDefault();
+      wrapper.style.borderColor = '#E0F2F5';
+      if (e.dataTransfer.files.length > 0) {
+        loadFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    // 初期化：image.jpg を読み込み
+    window.addEventListener('DOMContentLoaded', () => {
+      currentImage.crossOrigin = 'anonymous';
+      currentImage.onload = () => {
+        renderCanvas();
+        updateUI();
+      };
+      currentImage.onerror = () => {
+        canvas.width = 640;
+        canvas.height = 420;
+        ctx.fillStyle = '#E6F8FA';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#FDE68A';
+        ctx.beginPath();
+        ctx.ellipse(320, 420, 360, 80, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.roundRect(280, 120, 80, 260, [40, 40, 0, 0]);
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#5A4A42';
+        ctx.stroke();
+
+        ctx.fillStyle = '#1E293B';
+        ctx.beginPath();
+        ctx.arc(305, 160, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#FFF';
+        ctx.beginPath();
+        ctx.arc(307, 158, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#38BDF8';
+        ctx.beginPath();
+        ctx.arc(335, 230, 10, 0, Math.PI * 2);
+        ctx.arc(310, 310, 12, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#A07E69';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('「しゃしんを えらぶ」から チンアナゴの しゃしんを のせてね！', 320, 60);
+
+        const fallbackImg = new Image();
+        fallbackImg.onload = () => {
+          currentImage = fallbackImg;
+          updateUI();
+        };
+        fallbackImg.src = canvas.toDataURL();
+      };
+
+      currentImage.src = 'image.jpg';
+    });
+  </script>
+</body>
+</html>
