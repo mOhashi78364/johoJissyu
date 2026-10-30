@@ -212,6 +212,67 @@
       display: block;
     }
 
+    /* スタート待機画面オーバーレイ（フィールド内） */
+    .td-start-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(9, 13, 22, 0.78);
+      backdrop-filter: blur(3px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      gap: 14px;
+      z-index: 15;
+      text-align: center;
+      transition: opacity 0.2s ease;
+    }
+
+    .td-start-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .td-start-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--td-accent);
+      margin: 0;
+      letter-spacing: 0.04em;
+      text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+
+    .td-start-desc {
+      font-size: 0.85rem;
+      color: var(--td-text);
+      line-height: 1.5;
+      margin: 0;
+      max-width: 300px;
+    }
+
+    .td-start-btn {
+      min-width: 210px;
+      min-height: 52px;
+      padding: 12px 28px;
+      border-radius: 999px;
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      color: #ffffff;
+      border: 2px solid #93c5fd;
+      cursor: pointer;
+      touch-action: manipulation;
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+      transition: transform 0.08s ease, filter 0.1s ease;
+    }
+
+    .td-start-btn:active {
+      transform: scale(0.96);
+      filter: brightness(1.1);
+    }
+
     /* ダメージ・誤答時のフラッシュ＆シェイク演出 */
     .td-flash-overlay {
       position: absolute;
@@ -525,6 +586,12 @@
     <section class="td-field" id="tdField" aria-label="防衛フィールド">
       <canvas class="td-canvas" id="tdCanvas"></canvas>
 
+      <div class="td-start-overlay" id="tdStartOverlay">
+        <h1 class="td-start-title">三角比タワーディフェンス</h1>
+        <p class="td-start-desc">迫りくる三角比（0°〜180°）の値を<br>下のキーパッドで素早くタップして迎撃しよう！</p>
+        <button type="button" class="btn td-start-btn" id="tdStartBtn">ゲームスタート</button>
+      </div>
+
       <div class="td-banner" id="tdBanner" aria-live="polite">
         <span class="td-banner-title" id="tdBannerTitle">WAVE 1</span>
         <span class="td-banner-sub" id="tdBannerSub">鋭角・直角（0°〜90°）</span>
@@ -666,6 +733,8 @@
           this.resultBreakdown = document.getElementById('tdResultBreakdown');
           this.weakListEl = document.getElementById('tdWeakList');
           this.retryBtn = document.getElementById('tdRetryBtn');
+          this.startOverlay = document.getElementById('tdStartOverlay');
+          this.startBtn = document.getElementById('tdStartBtn');
 
           // 内部状態
           this.width = 0;
@@ -675,17 +744,23 @@
           this.lastTimestamp = 0;
           this.cooldownTimer = null;
           this.bannerTimer = null;
+          this.isPlaying = false;
 
           this.bindEvents();
           this.resizeCanvas();
-          this.resetGame();
+          this.initStandby();
         }
 
         /**
          * イベントリスナー登録（pointerdownでスマホタップ遅延を防止）
          */
         bindEvents() {
-          window.addEventListener('resize', () => this.resizeCanvas());
+          window.addEventListener('resize', () => {
+            this.resizeCanvas();
+            if (!this.isPlaying) {
+              this.render();
+            }
+          });
 
           const keys = this.keypadGrid.querySelectorAll('.td-key[data-value]');
           keys.forEach((btn) => {
@@ -699,6 +774,11 @@
             btn.addEventListener('pointerup', clearPressed);
             btn.addEventListener('pointercancel', clearPressed);
             btn.addEventListener('pointerleave', clearPressed);
+          });
+
+          this.startBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            this.resetGame();
           });
 
           this.retryBtn.addEventListener('pointerdown', (e) => {
@@ -722,6 +802,31 @@
         }
 
         /**
+         * スタートボタン押下前の待機状態を初期化
+         */
+        initStandby() {
+          this.isPlaying = false;
+          this.isGameOver = false;
+          this.isCooldown = false;
+          this.maxLives = 3;
+          this.lives = 3;
+          this.currentWaveIndex = 0;
+          this.destroyedCount = 0;
+          this.totalSpawnedCount = 0;
+          this.combo = 0;
+          this.maxCombo = 0;
+          this.enemies = [];
+          this.bullets = [];
+          this.particles = [];
+          this.weakMap = new Map();
+
+          this.startOverlay.classList.remove('hidden');
+          this.resultModal.classList.remove('active');
+          this.updateHUD();
+          this.render();
+        }
+
+        /**
          * ゲーム状態を初期状態にリセットして開始
          */
         resetGame() {
@@ -735,7 +840,9 @@
           }
           this.keypadGrid.classList.remove('cooldown');
           this.resultModal.classList.remove('active');
+          this.startOverlay.classList.add('hidden');
 
+          this.isPlaying = true;
           this.maxLives = 3;
           this.lives = 3;
           this.currentWaveIndex = 0;
@@ -847,7 +954,7 @@
          * キーパッド入力時の迎撃判定
          */
         handleInput(value) {
-          if (this.isGameOver || this.isCooldown) return;
+          if (!this.isPlaying || this.isGameOver || this.isCooldown) return;
 
           // 画面上の未迎撃の敵から、解答値が一致するものを抽出
           const matchingEnemies = this.enemies.filter(
@@ -1185,6 +1292,7 @@
          * ゲーム終了＆リザルト表示
          */
         finishGame(isClear) {
+          this.isPlaying = false;
           this.isGameOver = true;
           if (this.rafId) {
             cancelAnimationFrame(this.rafId);
