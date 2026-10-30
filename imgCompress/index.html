@@ -4,55 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>画像の圧縮体験アプリ</title>
+<link rel="stylesheet" href="../css/common.css">
 <style>
-    :root {
-        --text: #374151;
-        --main: #2563EB;
-        --sub1: #DBEAFE;
-        --sub2: #1E3A8A;
-        --muted: #9CA3AF;
-        --accent: #EF4444;
-        --icon: #646565;
-        --bg: #f9fafb;
-    }
     body {
-        font-family: sans-serif;
-        color: var(--text);
-        background-color: var(--bg);
-        margin: 0;
-        padding: 0;
         display: flex;
         flex-direction: column;
         height: 100vh;
     }
     header {
-        background-color: var(--sub1);
-        padding: 1rem 2rem;
-        display: flex;
-        align-items: center;
-        border-bottom: 2px solid var(--main);
         flex-shrink: 0;
     }
-    header h1 {
-        margin: 0 0 0 10px;
-        color: var(--sub2);
-        font-size: 1.5rem;
-    }
     .container {
-        display: flex;
         gap: 1rem;
         padding: 1rem;
         flex-grow: 1;
         overflow: hidden;
+        max-width: none;
+        margin: 0;
     }
     .column {
-        flex: 1;
-        background: white;
         padding: 1rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        display: flex;
-        flex-direction: column;
         gap: 0.5rem;
     }
     .control-area {
@@ -118,11 +89,6 @@
         color: white;
         padding: 0.2rem 0.5rem;
         border-radius: 4px;
-        font-size: 0.9rem;
-    }
-    .error {
-        color: var(--accent);
-        font-weight: bold;
         font-size: 0.9rem;
     }
 </style>

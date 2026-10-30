@@ -4,19 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ばくだんタイムアタック</title>
+    <link rel="stylesheet" href="../../css/common.css">
     <style>
-        body { font-family: sans-serif; background-color: #F0F2F5; text-align: center; margin: 0; padding: 20px; user-select: none; }
-        h1 { color: #2563EB; font-size: 2rem; }
-        .setup-box, .ready-box { background: white; padding: 20px; border-radius: 12px; max-width: 400px; margin: 40px auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        body { background-color: var(--baseColor); text-align: center; padding: 20px; user-select: none; }
+        h1 { color: var(--main); font-size: 2rem; }
         select { font-size: 1.5rem; padding: 10px; margin: 15px 0; width: 80%; }
-        .nav-btn { font-size: 1.5rem; padding: 10px 30px; background-color: #2563EB; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         #game-screen, #ready-screen { display: none; }
-        #bomb-btn { width: 150px; height: 150px; background-color: #1F2937; border: 8px solid #EF4444; border-radius: 50%; font-size: 4rem; cursor: pointer; margin: 20px auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 12px rgba(0,0,0,0.2); }
+        #bomb-btn { width: 150px; height: 150px; background-color: #1F2937; border: 8px solid var(--accent); border-radius: 50%; font-size: 4rem; cursor: pointer; margin: 20px auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 12px rgba(0,0,0,0.2); box-sizing: content-box; }
         #bomb-btn:active { transform: scale(0.95); }
-        .records { background: white; max-width: 300px; margin: 15px auto; padding: 10px; border-radius: 8px; text-align: left; }
-        .hint-box { display: none; background: #FEF3C7; border: 3px dashed #F59E0B; padding: 15px; border-radius: 12px; max-width: 500px; margin: 20px auto; font-size: 1.3rem; font-weight: bold; }
-        .keyword-display { font-size: 2.2rem; color: #EF4444; font-weight: bold; background: white; border-radius: 8px; display: inline-block; padding: 5px 20px; margin-top: 10px; border: 2px solid #EF4444; }
-        #result { font-size: 1.6rem; font-weight: bold; margin-top: 10px; color: #2563EB; }
+        #result { font-size: 1.6rem; font-weight: bold; margin-top: 10px; color: var(--main); }
     </style>
 </head>
 <body>

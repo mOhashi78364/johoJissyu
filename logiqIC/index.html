@@ -4,47 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>論理回路シミュレータ</title>
+<link rel="stylesheet" href="../css/common.css">
 <style>
-    :root {
-        --text: #374151;
-        --main: #2563EB;
-        --sub1: #DBEAFE;
-        --sub2: #1E3A8A;
-        --muted: #9CA3AF;
-        --accent: #EF4444;
-        --icon: #646565;
-        --canvas-bg: #f9fafb;
-    }
     body {
-        font-family: sans-serif;
-        color: var(--text);
-        background-color: var(--canvas-bg);
-        margin: 0;
-        padding: 0;
         display: flex;
         flex-direction: column;
         height: 100vh;
         overflow: hidden;
     }
     header {
-        background-color: var(--sub1);
-        padding: 1rem 2rem;
-        display: flex;
-        align-items: center;
-        border-bottom: 2px solid var(--main);
         flex-shrink: 0;
     }
-    header h1 {
-        margin: 0 0 0 10px;
-        color: var(--sub2);
-        font-size: 1.5rem;
-    }
     .container {
-        display: flex;
         flex: 1;
         gap: 1rem;
         padding: 1rem;
         overflow: hidden;
+        max-width: none;
+        margin: 0;
     }
     .sidebar {
         width: 250px;
@@ -57,6 +34,7 @@
         gap: 1rem;
         flex-shrink: 0;
         overflow-y: auto;
+        box-sizing: content-box;
     }
     .canvas-container {
         flex: 1;
@@ -95,20 +73,8 @@
         pointer-events: none;
     }
     .action-btn {
-        background-color: var(--main);
-        color: white;
-        border: none;
-        padding: 0.5rem;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-        text-align: center;
-        transition: background-color 0.2s;
         width: 100%;
         margin-bottom: 0.5rem;
-    }
-    .action-btn:hover {
-        background-color: var(--sub2);
     }
     
     /* 回路パーツのスタイル */
@@ -168,6 +134,7 @@
         z-index: 20;
         transform: translate(-50%, -50%);
         transition: 0.2s;
+        box-sizing: content-box;
     }
     .port:hover {
         background-color: var(--sub1);

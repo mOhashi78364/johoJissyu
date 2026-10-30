@@ -4,17 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>大と犬 まちがいさがし</title>
+    <link rel="stylesheet" href="../../css/common.css">
     <style>
-        body { font-family: sans-serif; background-color: #F0F2F5; text-align: center; margin: 0; padding: 10px; }
-        h1 { color: #2563EB; font-size: 1.8rem; margin: 5px; }
-        .setup-box, .ready-box { background: white; padding: 20px; border-radius: 12px; max-width: 400px; margin: 40px auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        body { background-color: var(--baseColor); text-align: center; padding: 10px; }
+        h1 { color: var(--main); font-size: 1.8rem; margin: 5px; }
         select { font-size: 1.5rem; padding: 10px; margin: 15px 0; width: 80%; }
-        .nav-btn { font-size: 1.5rem; padding: 10px 30px; background-color: #2563EB; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         #game-screen, #ready-screen { display: none; }
         .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; max-width: 460px; margin: 10px auto; background: white; padding: 8px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .char { font-size: 1.6rem; cursor: pointer; user-select: none; padding: 2px; border-radius: 4px; font-weight: bold; }
-        .hint-box { display: none; background: #FEF3C7; border: 3px dashed #F59E0B; padding: 15px; border-radius: 12px; max-width: 500px; margin: 20px auto; font-size: 1.3rem; font-weight: bold; }
-        .keyword-display { font-size: 2.2rem; color: #EF4444; font-weight: bold; background: white; border-radius: 8px; display: inline-block; padding: 5px 20px; margin-top: 10px; border: 2px solid #EF4444; }
         #result { font-size: 1.5rem; font-weight: bold; min-height: 30px; margin-top: 5px; }
     </style>
 </head>

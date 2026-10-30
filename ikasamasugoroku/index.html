@@ -4,17 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>すごろくゲーム</title>
+    <link rel="stylesheet" href="../css/common.css">
     <style>
-        /* --- カラーパレット設定（ポータルサイトと統一） --- */
-        :root {
-            --textColor: #374151;   /* 文字色 */
-            --mainColor: #2563EB;   /* メインカラー: ボタン等 */
-            --subColor1: #DBEAFE;   /* サブカラー1: 背景アクセント */
-            --subColor2: #1E3A8A;   /* サブカラー2: 強調・ボーダー */
-            --accentColor: #EF4444; /* アクセントカラー: ゴール・サイコロ */
-            --baseColor: #F0F2F5;   /* ベースカラー: 背景 */
-        }
-
         body {
             font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
             background-color: var(--baseColor);
@@ -23,7 +14,6 @@
             flex-direction: column;
             align-items: center;
             padding: 20px;
-            margin: 0;
             line-height: 1.6;
         }
 
@@ -214,6 +204,7 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             border: 3px solid white; /* 白枠をつけて視認性アップ */
             transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); /* なめらかな動き */
+            box-sizing: content-box;
         }
 
         /* --- スマホ対応レスポンシブ設定 --- */
@@ -248,7 +239,6 @@
                 gap: 5px;
             }
         }
-
     </style>
 </head>
 <body>
