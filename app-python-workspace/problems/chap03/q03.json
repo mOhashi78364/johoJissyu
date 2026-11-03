@@ -1,0 +1,6 @@
+{
+  "id": "c03_q03",
+  "title": "問3 条件繰り返し（目標金額までの貯金）",
+  "description": "貯金額(total)が目標金額(target=1000)より小さい間、追加入力(pay)を足し続けて目標達成を目指す手順を完成させよう。",
+  "template": "total = 0\ntarget = 1000\n表示する(\"目標金額は\", target, \"円です！\")\ntotal が target より小さい間，繰り返す:\n　pay = ユーザ入力()\n　total = total + pay\n　表示する(\"現在の貯金額:\", total, \"円\")\n表示する(\"目標の\", target, \"円を達成しました！おめでとう！\")"
+}

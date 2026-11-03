@@ -1,0 +1,126 @@
+{
+  "chapters": [
+    {
+      "chapterId": "chap02",
+      "chapterTitle": "Chap2 分岐",
+      "problems": [
+        {
+          "id": "c02_ex01",
+          "title": "例1 名前の入力とあいさつ",
+          "file": "chap02/ex01.json"
+        },
+        {
+          "id": "c02_q01",
+          "title": "問1 好きな食べ物の入力と表示",
+          "file": "chap02/q01.json"
+        },
+        {
+          "id": "c02_ex02",
+          "title": "例2 商と余りの計算（あめの分配）",
+          "file": "chap02/ex02.json"
+        },
+        {
+          "id": "c02_q02",
+          "title": "問2 秒数を分と秒に換算",
+          "file": "chap02/q02.json"
+        },
+        {
+          "id": "c02_ex03",
+          "title": "例3 条件分岐（単一のif）",
+          "file": "chap02/ex03.json"
+        },
+        {
+          "id": "c02_q03",
+          "title": "問3 気温による警告表示（if文）",
+          "file": "chap02/q03.json"
+        },
+        {
+          "id": "c02_ex04",
+          "title": "例4 条件分岐（if〜else：偶数・奇数）",
+          "file": "chap02/ex04.json"
+        },
+        {
+          "id": "c02_q04",
+          "title": "問4 3の倍数の判定（if〜else）",
+          "file": "chap02/q04.json"
+        },
+        {
+          "id": "c02_ex05",
+          "title": "例5 多重分岐（if〜elif〜else：成績判定）",
+          "file": "chap02/ex05.json"
+        },
+        {
+          "id": "c02_q05",
+          "title": "問5 年齢による入場料区分（elif文）",
+          "file": "chap02/q05.json"
+        },
+        {
+          "id": "c02_q06",
+          "title": "問6 発展：うるう年の判定",
+          "file": "chap02/q06.json"
+        },
+        {
+          "id": "c02_q07",
+          "title": "問7 発展：自由課題",
+          "file": "chap02/q07.json"
+        }
+      ]
+    },
+    {
+      "chapterId": "chap03",
+      "chapterTitle": "Chap3 反復",
+      "problems": [
+        {
+          "id": "c03_ex01",
+          "title": "例1 決まった回数の繰り返し",
+          "file": "chap03/ex01.json"
+        },
+        {
+          "id": "c03_q01",
+          "title": "問1 1から10までのカウント表示",
+          "file": "chap03/q01.json"
+        },
+        {
+          "id": "c03_ex02",
+          "title": "例2 1から10までの総和（累計計算）",
+          "file": "chap03/ex02.json"
+        },
+        {
+          "id": "c03_q02",
+          "title": "問2 偶数の合計計算（2から100まで）",
+          "file": "chap03/q02.json"
+        },
+        {
+          "id": "c03_ex03",
+          "title": "例3 条件繰り返し（チャージ残高の消費）",
+          "file": "chap03/ex03.json"
+        },
+        {
+          "id": "c03_q03",
+          "title": "問3 条件繰り返し（目標金額までの貯金）",
+          "file": "chap03/q03.json"
+        },
+        {
+          "id": "c03_ex04",
+          "title": "例4 複合条件（かつ：アトラクション入場案内）",
+          "file": "chap03/ex04.json"
+        },
+        {
+          "id": "c03_q04",
+          "title": "問4 複合条件（または：特別割引判定）",
+          "file": "chap03/q04.json"
+        },
+        {
+          "id": "c03_ex05",
+          "title": "例5 ループと分岐（偶数・奇数の判定）",
+          "file": "chap03/ex05.json"
+        },
+        {
+          "id": "c03_q05",
+          "title": "問5 ループと多重分岐（3と5の倍数判定）",
+          "file": "chap03/q05.json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "id": "c02_q02",
+  "title": "問2 秒数を分と秒に換算",
+  "description": "ユーザ入力() で全体の秒数(total_sec)を受け取り、分(minute)と秒(sec)に換算して表示する手順を完成させよう。○○を適切な計算記号に変換してください。",
+  "template": "total_sec = ユーザ入力(\"秒数を入力\")\nminute = total_sec ○○ 60\nsec = total_sec ○○ 60\n表示する(minute, \"分\", sec, \"秒です\")"
+}

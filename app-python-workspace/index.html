@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本語 - Python　変換プログラミング</title>
+    <!-- 共通スタイルシート（rules.md準拠） -->
+    <link rel="stylesheet" href="../css/common.css">
+    <!-- ワークスペース固有スタイルシート -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- アプリケーションスクリプト（外部通信不要・ブラウザ完結） -->
+    <script src="js/pyodide-handler.js" defer></script>
+    <script src="js/app.js" defer></script>
+</head>
+<body>
+
+    <!-- ===================================================
+         ヘッダー（タイトル・Python実行環境ステータス）
+         =================================================== -->
+    <header class="workspace-header">
+        <div class="header-left">
+            <h1>日本語 - Python　変換プログラミング</h1>
+        </div>
+
+        <div class="header-controls">
+            <!-- Python 実行環境ステータス表示 -->
+            <div id="pyodide-status" class="pyodide-status pyodide-ready" role="status" aria-live="polite">
+                <span class="status-dot"></span>
+                <span id="pyodide-status-text">Python実行可能</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===================================================
+         メイン2カラム固定レイアウト（50:50・コピペ不要）
+         =================================================== -->
+    <main class="workspace-main">
+
+        <!-- 左カラム：日本語仕様・論理設計エリア -->
+        <section class="workspace-pane" aria-label="日本語仕様・論理設計エリア">
+            <div class="pane-header">
+                <h2 class="pane-title">
+                    <span class="pane-step-badge">STEP 1</span>
+                    日本語コードエリア
+                </h2>
+                <span id="autosave-status" class="autosave-indicator">✓ 自動保存オン</span>
+            </div>
+
+            <div class="pane-body">
+                <!-- 上部：章・問題選択ドロップダウン ＆ 問題説明文 -->
+                <div class="problem-selector-bar">
+                    <div class="selector-group chapter-group">
+                        <label for="chapter-select">Chap:</label>
+                        <select id="chapter-select" class="problem-select" aria-label="章を選択">
+                            <option value="">章を読み込み中...</option>
+                        </select>
+                    </div>
+                    <div class="selector-group problem-group">
+                        <label for="problem-select">問題:</label>
+                        <select id="problem-select" class="problem-select" aria-label="問題を選択">
+                            <option value="">問題を選択...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="problem-info-card">
+                    <p id="problem-desc" class="problem-desc">問題データを読み込んでいます...</p>
+                </div>
+
+                <!-- 中央：日本語コード記述エディタ（行番号付き・コピー/リセットボタン付き） -->
+                <div class="editor-toolbar">
+                    <span class="editor-label">📝 日本語コード</span>
+                    <div class="editor-toolbar-actions">
+                        <button type="button" id="btn-copy-jp" class="btn-tool" title="日本語コードをクリップボードにコピー">
+                            📋 コピー
+                        </button>
+                        <button type="button" id="btn-reset-problem" class="btn-reset" title="この問題の初期テンプレートに戻す">
+                            ↺ リセット
+                        </button>
+                    </div>
+                </div>
+
+                <div class="code-editor-wrapper jp-editor-wrapper">
+                    <div id="jp-line-numbers" class="line-numbers" aria-hidden="true">
+                        <span>1</span>
+                    </div>
+                    <div class="jp-editor-stage">
+                        <pre id="jp-highlight-layer" class="jp-highlight-layer" aria-hidden="true"></pre>
+                        <textarea
+                            id="jp-editor"
+                            class="jp-textarea"
+                            spellcheck="false"
+                            autocapitalize="off"
+                            autocomplete="off"
+                            placeholder="ここに日本語で手順（ロジック）を記述します..."
+                            aria-label="日本語コード記述エディタ"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <!-- 下部：「Pythonに変換 ➔」ボタン -->
+                <div class="convert-action-bar">
+                    <button type="button" id="btn-convert" class="btn-convert">
+                        <span id="convert-spinner" class="spinner hidden" aria-hidden="true"></span>
+                        <span id="convert-btn-text">Pythonに変換 &rarr;</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 右カラム：Pythonコード ＆ 実行環境エリア -->
+        <section class="workspace-pane" aria-label="Pythonコード＆実行環境エリア">
+            <div class="pane-header">
+                <h2 class="pane-title">
+                    <span class="pane-step-badge">STEP 2</span>
+                    Pythonコード ＆ 実行エリア
+                </h2>
+            </div>
+
+            <div class="pane-body">
+                <!-- 上部：変換されたPythonコード表示（構文ハイライト付き・直接編集も可能） -->
+                <div class="editor-toolbar">
+                    <span class="editor-label">🐍 Python コード（直接編集もできます）</span>
+                    <div class="editor-toolbar-actions">
+                        <button type="button" id="btn-copy-py" class="btn-tool" title="Pythonコードをクリップボードにコピー">
+                            📋 コピー
+                        </button>
+                    </div>
+                </div>
+
+                <div class="code-editor-wrapper python-editor-wrapper">
+                    <div id="py-line-numbers" class="line-numbers" aria-hidden="true">
+                        <span>1</span>
+                    </div>
+                    <div class="py-editor-stage">
+                        <pre id="py-highlight-layer" class="py-highlight-layer" aria-hidden="true"></pre>
+                        <textarea
+                            id="py-editor"
+                            class="py-textarea"
+                            spellcheck="false"
+                            autocapitalize="off"
+                            autocomplete="off"
+                            aria-label="Pythonコードエディタ"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <!-- 中央：「▶ 実行する (Run)」ボタン -->
+                <div class="run-action-bar">
+                    <button type="button" id="btn-run" class="btn-run">
+                        <span>&#9654; 実行する (Run)</span>
+                    </button>
+                </div>
+
+                <!-- 下部：実行結果（コンソール出力）表示エリア -->
+                <div class="console-section">
+                    <div class="console-header">
+                        <span class="editor-label">💻 実行結果</span>
+                    </div>
+                    <pre id="console-output" class="console-output" aria-live="polite"><span class="console-placeholder">ここに print() の出力結果やエラーメッセージが表示されます。</span></pre>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>情報I 定期テスト対策 一問一答クイズ</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <style>
+    /* ===================================================
+       情報I 定期テスト対策クイズ 固有スタイル（スマホ最適化）
+       ※ベースカラーや基本コンポーネントは ../css/common.css を再利用
+       =================================================== */
+    /* 非表示クラスが他の display 指定に上書きされないよう最優先化 */
+    .hidden,
+    [hidden] {
+      display: none !important;
+    }
+
+    body {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* シンプルな共通ヘッダー */
+    header.quiz-header {
+      padding: 0.75rem 1rem;
+      justify-content: center;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    header.quiz-header h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      line-height: 1.3;
+      text-align: center;
+    }
+
+    /* メインコンテナ（1画面につき1つのビューのみを表示） */
+    main.quiz-main {
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* バージョン更新通知バナー */
+    .version-notice {
+      background-color: var(--sub1);
+      color: var(--sub2);
+      border-left: 4px solid var(--main);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    /* 単一画面ビュー枠 */
+    .screen-view {
+      background-color: var(--white);
+      border-radius: 14px;
+      padding: 1.5rem 1.25rem;
+      box-shadow: var(--shadow);
+      border: 1px solid #E5E7EB;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ===================================================
+       1. スタート画面
+       =================================================== */
+    .start-view {
+      text-align: center;
+      padding: 2rem 1.25rem;
+      gap: 1.5rem;
+    }
+
+    .start-header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .start-badge {
+      display: inline-block;
+      background-color: var(--sub1);
+      color: var(--main);
+      font-size: 0.8rem;
+      font-weight: bold;
+      padding: 0.25rem 0.85rem;
+      border-radius: 999px;
+    }
+
+    .start-title {
+      margin: 0;
+      font-size: 1.45rem;
+      color: var(--sub2);
+      line-height: 1.4;
+    }
+
+    .start-desc {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #4B5563;
+    }
+
+    .start-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-top: 0.25rem;
+    }
+
+    .btn-start-all {
+      width: 100%;
+      min-height: 56px;
+      font-size: 1.08rem;
+      border-radius: 12px;
+      padding: 0.9rem 1.2rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 6px rgba(37, 99, 235, 0.15);
+    }
+
+    .btn-review-wrong {
+      width: 100%;
+      min-height: 56px;
+      font-size: 1.05rem;
+      border-radius: 12px;
+      background-color: var(--accent);
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.9rem 1.2rem;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.15s ease, transform 0.1s ease;
+    }
+
+    .btn-review-wrong:hover:not(:disabled) {
+      background-color: #DC2626;
+    }
+
+    .btn-review-wrong:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .btn-review-wrong.is-disabled,
+    .btn-review-wrong:disabled {
+      background-color: #E5E7EB;
+      color: #9CA3AF;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .count-pill {
+      background-color: rgba(255, 255, 255, 0.25);
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+    }
+
+    .btn-review-wrong:disabled .count-pill {
+      background-color: #D1D5DB;
+      color: #6B7280;
+    }
+
+    .btn-clear-history {
+      align-self: center;
+      background: transparent;
+      border: 1px solid #CBD5E1;
+      color: #64748B;
+      font-size: 0.82rem;
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-clear-history:hover {
+      background-color: #F1F5F9;
+      color: var(--text);
+    }
+
+    /* ===================================================
+       2. 問題画面（問題と選択肢のみをシンプルに表示）
+       =================================================== */
+    .question-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .question-heading {
+      font-size: 1.12rem;
+      font-weight: bold;
+      color: var(--text);
+      margin: 0;
+      line-height: 1.55;
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+    }
+
+    .question-num {
+      color: var(--main);
+      font-size: 1.2rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* インラインコード (`x` 等) */
+    code.inline-code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background-color: #F1F5F9;
+      color: #0F172A;
+      border: 1px solid #CBD5E1;
+      border-radius: 5px;
+      padding: 0.1rem 0.4rem;
+      font-size: 0.92em;
+      font-weight: 700;
+    }
+
+    /* 疑似コード（コードブロック）表示枠 */
+    .code-block-container {
+      background-color: #1E293B;
+      color: #F8FAFC;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+      text-align: left;
+    }
+
+    .code-block-header {
+      background-color: #0F172A;
+      color: #94A3B8;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 0.35rem 0.85rem;
+      border-bottom: 1px solid #334155;
+      letter-spacing: 0.04em;
+    }
+
+    .code-block-pre {
+      margin: 0;
+      padding: 0.75rem 0.85rem;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.92rem;
+      line-height: 1.65;
+      tab-size: 4;
+    }
+
+    .code-line {
+      display: flex;
+      align-items: baseline;
+      min-width: max-content;
+    }
+
+    .code-line-num {
+      display: inline-block;
+      min-width: 2rem;
+      padding-right: 0.75rem;
+      color: #64748B;
+      text-align: right;
+      user-select: none;
+      -webkit-user-select: none;
+      font-size: 0.82rem;
+      flex-shrink: 0;
+    }
+
+    .code-line-text {
+      white-space: pre;
+      color: #F8FAFC;
+    }
+
+    /* 選択肢内の疑似コードブロック */
+    .option-code-wrap {
+      width: 100%;
+    }
+
+    .option-code-wrap .code-block-pre {
+      padding: 0.55rem 0.7rem;
+      font-size: 0.86rem;
+    }
+
+    /* 問題文に付属する図・画像 */
+    .question-image-container {
+      background-color: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      padding: 0.75rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .question-image-container img {
+      display: block;
+      max-width: 100%;
+      max-height: 220px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+
+    /* ===================================================
+       選択肢グリッド（2択・3択・4択・画像付きに柔軟対応）
+       =================================================== */
+    .options-grid {
+      display: grid;
+      gap: 0.75rem;
+      width: 100%;
+    }
+
+    /* 1列レイアウト（テキスト3択・4択の基本） */
+    .options-grid.cols-1 {
+      grid-template-columns: 1fr;
+    }
+
+    /* 2列レイアウト（画像付き選択肢、または2択正誤ボタン） */
+    .options-grid.cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* 3択かつ画像付きの場合 */
+    .options-grid.has-images.count-3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* 選択肢ボタン本体（スマホでタップしやすい最小高さ56px以上） */
+    .option-btn {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+      min-height: 56px;
+      background-color: var(--white);
+      color: var(--text);
+      border: 2px solid #CBD5E1;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+      font-weight: bold;
+      font-family: inherit;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+      user-select: none;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--main);
+      background-color: #F8FAFC;
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.985);
+    }
+
+    /* 2択（正しい/誤り等）のボタンは中央揃えで大きくタップしやすく */
+    .options-grid.two-choice-buttons .option-btn {
+      min-height: 72px;
+      align-items: center;
+      text-align: center;
+      padding: 1rem 0.75rem;
+      font-size: 1.1rem;
+    }
+
+    .options-grid.two-choice-buttons .option-header {
+      justify-content: center;
+    }
+
+    /* 画像付き選択肢ボタンのスタイル */
+    .option-btn.option-with-image {
+      padding: 0.65rem;
+      justify-content: flex-start;
+      align-items: stretch;
+    }
+
+    .option-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      width: 100%;
+    }
+
+    .option-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background-color: var(--sub1);
+      color: var(--sub2);
+      font-size: 0.85rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .option-label-text {
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    /* 選択肢内の画像ラッパー（スマホ画面で潰れず均等に並ぶ） */
+    .option-image-wrap {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-height: 170px;
+      background-color: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 0.35rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .option-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* 解答後の正誤ハイライト状態 */
+    .option-btn.is-correct {
+      border-color: var(--success);
+      background-color: #ECFDF5;
+      color: #065F46;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+
+    .option-btn.is-correct .option-badge {
+      background-color: var(--success);
+      color: var(--white);
+    }
+
+    .option-btn.is-wrong {
+      border-color: var(--accent);
+      background-color: #FEF2F2;
+      color: #991B1B;
+    }
+
+    .option-btn.is-wrong .option-badge {
+      background-color: var(--accent);
+      color: var(--white);
+    }
+
+    .option-btn.is-dimmed {
+      opacity: 0.55;
+      cursor: default;
+    }
+
+    .option-btn:disabled {
+      cursor: default;
+    }
+
+    /* ===================================================
+       正誤フィードバック・解説エリア（回答後にのみ表示）
+       =================================================== */
+    .feedback-box {
+      border-top: 2px dashed #E5E7EB;
+      padding-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .feedback-banner {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+
+    .feedback-banner.correct {
+      background-color: #D1FAE5;
+      color: #065F46;
+      border: 1px solid #34D399;
+    }
+
+    .feedback-banner.wrong {
+      background-color: #FEE2E2;
+      color: #991B1B;
+      border: 1px solid #F87171;
+    }
+
+    .explanation-box {
+      background-color: #F8FAFC;
+      border-left: 4px solid var(--main);
+      padding: 0.85rem 1rem;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .explanation-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: var(--sub2);
+      margin-bottom: 0.25rem;
+    }
+
+    .explanation-body {
+      margin: 0;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .next-action-btn {
+      width: 100%;
+      min-height: 52px;
+      font-size: 1.05rem;
+      border-radius: 10px;
+      padding: 0.85rem 1.2rem;
+    }
+
+    /* ===================================================
+       3. 結果画面（単一ビュー内で正答率と次のアクションを表示）
+       =================================================== */
+    .result-view {
+      text-align: center;
+      padding: 2rem 1.25rem;
+    }
+
+    .result-title {
+      margin: 0;
+      font-size: 1.35rem;
+      color: var(--sub2);
+    }
+
+    .result-summary-box {
+      background-color: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 1.25rem 1rem;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .result-stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    .result-stat-divider {
+      width: 1px;
+      height: 48px;
+      background-color: #CBD5E1;
+    }
+
+    .score-stat-label {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #64748B;
+    }
+
+    .score-stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--main);
+      line-height: 1.2;
+    }
+
+    .score-stat-unit {
+      font-size: 1rem;
+      color: var(--text);
+      font-weight: bold;
+    }
+
+    .result-comment {
+      margin: 0;
+      font-size: 0.98rem;
+      font-weight: bold;
+      color: var(--text);
+      background-color: var(--sub1);
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+    }
+
+    .result-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.25rem;
+    }
+
+    .btn-back-start {
+      width: 100%;
+      min-height: 52px;
+      font-size: 1rem;
+      border-radius: 12px;
+    }
+
+    /* 小画面スマホ向けの微調整 */
+    @media (max-width: 420px) {
+      main.quiz-main {
+        padding: 0.75rem;
+      }
+      .screen-view {
+        padding: 1.15rem 1rem;
+      }
+      .options-grid.cols-2 {
+        gap: 0.55rem;
+      }
+      .option-btn.option-with-image {
+        padding: 0.5rem;
+      }
+      .option-image-wrap {
+        max-height: 145px;
+      }
+      .question-heading {
+        font-size: 1.04rem;
+      }
+      .code-block-pre {
+        font-size: 0.84rem;
+        padding: 0.65rem 0.6rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- シンプルなヘッダー -->
+  <header class="quiz-header">
+    <h1>情報I 定期テスト対策クイズ</h1>
+  </header>
+
+  <main class="quiz-main">
+    <!-- バージョン更新時のリセット通知 -->
+    <div id="version-reset-notice" class="version-notice hidden" role="status" hidden>
+      テスト対象バージョンが更新されたため、過去の復習履歴をリセットしました。
+    </div>
+
+    <!-- 1. スタート画面（初期表示） -->
+    <section id="start-view" class="screen-view start-view" aria-live="polite">
+      <div class="start-header">
+        <span id="version-badge" class="start-badge">Ver: -</span>
+        <h2 class="start-title">情報I 一問一答演習</h2>
+        <p class="start-desc">
+          最初からすべての問題に挑戦するか、間違えた問題だけを優先的に復習するかを選択してください。
+        </p>
+      </div>
+
+      <div class="start-actions">
+        <button type="button" id="start-all-btn" class="btn btn-start-all">
+          <span>すべての問題を解く</span>
+          <span id="start-total-count-badge" class="count-pill">0問</span>
+        </button>
+
+        <button type="button" id="start-review-btn" class="btn-review-wrong" disabled>
+          <span>間違えた問題のみを復習する</span>
+          <span id="start-wrong-count-badge" class="count-pill">0問</span>
+        </button>
+
+        <button type="button" id="clear-history-btn" class="btn-clear-history hidden" hidden>
+          復習履歴をリセットする
+        </button>
+      </div>
+    </section>
+
+    <!-- 2. 問題画面（問題と選択肢のみを表示し、回答するまで正解・解説は非表示） -->
+    <section id="quiz-view" class="screen-view hidden" aria-live="polite" hidden>
+      <!-- 問題文・疑似コード・図 -->
+      <div class="question-box">
+        <h2 class="question-heading">
+          <span id="question-number" class="question-num">Q1.</span>
+          <span id="question-text"></span>
+        </h2>
+
+        <!-- 疑似コード表示エリア（codeプロパティ等がある場合に表示） -->
+        <div id="question-code-wrap" class="code-block-container hidden" hidden>
+          <div class="code-block-header">プログラム（疑似コード）</div>
+          <pre id="question-code" class="code-block-pre"></pre>
+        </div>
+
+        <!-- 問題図表示エリア（imageプロパティがある場合に表示） -->
+        <div id="question-image-wrap" class="question-image-container hidden" hidden>
+          <img id="question-image" src="" alt="問題の図">
+        </div>
+      </div>
+
+      <!-- 選択肢ボタン一覧 -->
+      <div id="options-container" class="options-grid cols-1"></div>
+
+      <!-- 正誤判定＆解説表示エリア（選択肢をタップして回答した後にのみ表示） -->
+      <div id="feedback-area" class="feedback-box hidden" hidden>
+        <div id="feedback-banner" class="feedback-banner">
+          <span id="feedback-icon" aria-hidden="true"></span>
+          <span id="feedback-title"></span>
+        </div>
+        <div class="explanation-box">
+          <span class="explanation-label">【解説】</span>
+          <div id="explanation-text" class="explanation-body"></div>
+        </div>
+        <button type="button" id="next-btn" class="btn next-action-btn">次の問題へ →</button>
+      </div>
+    </section>
+
+    <!-- 3. 結果画面（全問終了後にのみ表示） -->
+    <section id="result-view" class="screen-view result-view hidden" aria-live="polite" hidden>
+      <h2 id="result-mode-label" class="result-title">演習結果</h2>
+
+      <div class="result-summary-box">
+        <div class="result-stat-item">
+          <span class="score-stat-label">正解数</span>
+          <div>
+            <span id="score-number" class="score-stat-value">0</span>
+            <span class="score-stat-unit">/ <span id="score-total">0</span> 問</span>
+          </div>
+        </div>
+        <div class="result-stat-divider" aria-hidden="true"></div>
+        <div class="result-stat-item">
+          <span class="score-stat-label">正答率</span>
+          <div>
+            <span id="accuracy-value" class="score-stat-value">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <p id="result-message" class="result-comment"></p>
+
+      <div class="result-actions">
+        <button type="button" id="review-wrong-btn" class="btn-review-wrong">
+          <span>復習モードをはじめる（間違えた問題のみ）</span>
+          <span id="review-wrong-count-badge" class="count-pill">0問</span>
+        </button>
+        <button type="button" id="back-to-start-btn" class="btn btn-back-start">
+          スタート画面に戻る
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
