@@ -191,7 +191,8 @@ const state = {
     currentProblemId: null,
     currentProblemData: null,
     isConverting: false,
-    pyodideManager: null
+    pyodideManager: null,
+    pyErrorLine: null
 };
 
 // ===================================================
@@ -452,6 +453,7 @@ function initEditors() {
     });
 
     dom.pyEditor.addEventListener('input', () => {
+        clearPythonErrorHighlight();
         updateLineNumbers(dom.pyEditor, dom.pyLineNumbers);
         updatePythonHighlight();
         saveCurrentPyCode();
@@ -464,6 +466,7 @@ function initEditors() {
     });
 
     dom.pyEditor.addEventListener('keydown', (e) => handleEditorTabKey(e, dom.pyEditor, () => {
+        clearPythonErrorHighlight();
         updateLineNumbers(dom.pyEditor, dom.pyLineNumbers);
         updatePythonHighlight();
         saveCurrentPyCode();
@@ -544,6 +547,7 @@ function setJpEditorValue(text, shouldSave = true) {
 }
 
 function setPyEditorValue(text, shouldSave = true) {
+    clearPythonErrorHighlight();
     dom.pyEditor.value = text;
     updateLineNumbers(dom.pyEditor, dom.pyLineNumbers);
     updatePythonHighlight();
@@ -576,12 +580,14 @@ function showAutosaveFeedback(msg) {
     }, 3000);
 }
 
-function updateLineNumbers(textarea, gutterElement) {
+function updateLineNumbers(textarea, gutterElement, errorLine = null) {
     const lines = textarea.value.split('\n').length;
     const count = Math.max(1, lines);
     let html = '';
     for (let i = 1; i <= count; i++) {
-        html += `<span>${i}</span>`;
+        const isErr = (errorLine !== null && i === errorLine);
+        const errClass = isErr ? ' class="line-num-error"' : '';
+        html += `<span${errClass}>${i}</span>`;
     }
     gutterElement.innerHTML = html;
 }
@@ -643,9 +649,41 @@ function highlightJpSyntax(code) {
     return result;
 }
 
-function updatePythonHighlight() {
+function clearPythonErrorHighlight() {
+    if (state.pyErrorLine !== null) {
+        state.pyErrorLine = null;
+        updateLineNumbers(dom.pyEditor, dom.pyLineNumbers, null);
+        updatePythonHighlight(null);
+    }
+}
+
+function scrollToErrorLine(lineNum) {
+    if (!lineNum || lineNum <= 0 || !dom.pyEditor) return;
+    const lineHeightApprox = 23.5; // line-height: 1.6 (約23.5px)
+    const targetScrollTop = Math.max(0, (lineNum - 2) * lineHeightApprox);
+    dom.pyEditor.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+}
+
+function updatePythonHighlight(errorLine = state.pyErrorLine) {
     const code = dom.pyEditor.value;
-    dom.pyHighlightLayer.innerHTML = highlightPythonSyntax(code) + '\n';
+    const highlightedCode = highlightPythonSyntax(code);
+
+    if (errorLine === null || errorLine <= 0) {
+        dom.pyHighlightLayer.innerHTML = highlightedCode + '\n';
+        return;
+    }
+
+    const lines = highlightedCode.split('\n');
+    const result = lines.map((lineHtml, idx) => {
+        const lineNum = idx + 1;
+        if (lineNum === errorLine) {
+            const displayContent = lineHtml.length > 0 ? lineHtml : ' ';
+            return `<mark class="py-line-error">${displayContent}</mark>`;
+        }
+        return lineHtml;
+    }).join('\n');
+
+    dom.pyHighlightLayer.innerHTML = result + '\n';
 }
 
 function escapeHtml(str) {
@@ -1523,6 +1561,7 @@ async function handleRunPythonClick() {
 
     const code = dom.pyEditor.value;
     clearConsole();
+    clearPythonErrorHighlight();
 
     if (!code.trim()) {
         appendConsole('実行するPythonコードが空です。\n', 'system');
@@ -1535,6 +1574,15 @@ async function handleRunPythonClick() {
 
     try {
         const result = await state.pyodideManager.runPythonCode(code);
+
+        if (!result.success && result.errorLine) {
+            state.pyErrorLine = result.errorLine;
+            updateLineNumbers(dom.pyEditor, dom.pyLineNumbers, state.pyErrorLine);
+            updatePythonHighlight(state.pyErrorLine);
+            scrollToErrorLine(state.pyErrorLine);
+        } else {
+            clearPythonErrorHighlight();
+        }
 
         if (result.stdout === '' && result.stderr === '') {
             appendConsole('（出力はありませんでした。print() を使うとここに結果が表示されます）\n', 'system');

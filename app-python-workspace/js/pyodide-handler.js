@@ -169,19 +169,35 @@ _builtins.newInput = newInput
             return {
                 stdout: stdoutBuffer,
                 stderr: stderrBuffer,
-                success: stderrBuffer.length === 0
+                success: stderrBuffer.length === 0,
+                errorLine: null
             };
         } catch (err) {
             const errText = this.formatPythonError(err);
             emitStderr(errText);
+            const errorLine = this.extractPythonErrorLine(err);
             return {
                 stdout: stdoutBuffer,
                 stderr: stderrBuffer,
-                success: false
+                success: false,
+                errorLine: errorLine
             };
         } finally {
             this.isRunning = false;
         }
+    }
+
+    extractPythonErrorLine(err) {
+        if (!err) return null;
+        const text = err && err.message ? err.message : String(err);
+        // パターン: File "...", line X または line X（最も深いスタック行を優先）
+        const matches = [...text.matchAll(/(?:File\s+["'][^"']+["'],\s+line\s+|line\s+)(\d+)/gi)];
+        if (matches.length > 0) {
+            const last = matches[matches.length - 1];
+            const num = parseInt(last[1], 10);
+            if (!isNaN(num) && num > 0) return num;
+        }
+        return null;
     }
 
     formatPythonError(err) {

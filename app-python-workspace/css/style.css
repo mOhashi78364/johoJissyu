@@ -569,6 +569,37 @@ html, body {
 .tok-comment { color: #8b949e; font-style: italic; }
 .tok-op { color: #ffa657; }
 
+/* Python エラー行ハイライト */
+.line-numbers span.line-num-error {
+    background-color: #ef4444;
+    color: #ffffff !important;
+    font-weight: 700;
+    border-radius: 4px;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
+    animation: pulse-error-gutter 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-error-gutter {
+    from {
+        box-shadow: 0 0 3px rgba(239, 68, 68, 0.5);
+    }
+    to {
+        box-shadow: 0 0 9px rgba(239, 68, 68, 0.95);
+    }
+}
+
+.py-line-error {
+    display: inline-block;
+    min-width: 100%;
+    background-color: rgba(239, 68, 68, 0.22);
+    box-shadow: inset 4px 0 0 #ef4444;
+    color: inherit;
+    text-decoration: underline wavy #ef4444;
+    text-underline-offset: 4px;
+    border-radius: 0 4px 4px 0;
+    box-sizing: border-box;
+}
+
 /* 実行ボタンバー */
 .run-action-bar {
     display: flex;
