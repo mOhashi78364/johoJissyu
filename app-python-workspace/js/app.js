@@ -1,4 +1,4 @@
-﻿/**
+/**
  * app.js
  * 高校「情報I」ロジック変換・実行ワークスペース
  * （外部API・パスワード不要、100%ブラウザ内ルールベースDNCL変換エンジン完結版）
@@ -9,6 +9,7 @@
 // ===================================================
 const STORAGE_KEYS = {
     SELECTED_PROBLEM: 'info1_ws_selected_problem',
+    LAST_PROBLEM_BY_CHAP: 'info1_ws_last_prob_chap_',
     JP_CODE_PREFIX: 'info1_ws_jp_code_v2_',
     PY_CODE_PREFIX: 'info1_ws_py_code_v2_'
 };
@@ -278,6 +279,8 @@ const FALLBACK_PROBLEM_FILES = {
 };
 
 // ===================================================
+// 2. アプリケーション内部状態 ＆ 二重保持ストレージ
+// ===================================================
 const state = {
     chapters: [],
     problemMap: new Map(),
@@ -285,8 +288,121 @@ const state = {
     currentProblemData: null,
     isConverting: false,
     pyodideManager: null,
-    pyErrorLine: null
+    pyErrorLine: null,
+    storageAvailable: true,
+    hasUnsavedChangesInMemory: false,
+    memoryStore: {
+        jp: new Map(),
+        py: new Map(),
+        lastProblemByChap: new Map(),
+        selectedProblem: null
+    }
 };
+
+function checkLocalStorageAvailable() {
+    try {
+        const testKey = '__info1_ws_storage_test__';
+        window.localStorage.setItem(testKey, '1');
+        window.localStorage.removeItem(testKey);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function safeStorageGet(key) {
+    if (!state.storageAvailable) return null;
+    try {
+        return window.localStorage.getItem(key);
+    } catch {
+        return null;
+    }
+}
+
+function safeStorageSet(key, val) {
+    if (!state.storageAvailable) return false;
+    try {
+        window.localStorage.setItem(key, val);
+        return true;
+    } catch {
+        state.storageAvailable = false;
+        updateStorageStatusUI();
+        return false;
+    }
+}
+
+function getSavedJpCode(problemId) {
+    if (state.memoryStore.jp.has(problemId)) {
+        return state.memoryStore.jp.get(problemId);
+    }
+    const val = safeStorageGet(STORAGE_KEYS.JP_CODE_PREFIX + problemId);
+    if (val !== null) {
+        state.memoryStore.jp.set(problemId, val);
+    }
+    return val;
+}
+
+function setSavedJpCode(problemId, code) {
+    if (!problemId) return;
+    state.memoryStore.jp.set(problemId, code);
+    state.hasUnsavedChangesInMemory = true;
+    safeStorageSet(STORAGE_KEYS.JP_CODE_PREFIX + problemId, code);
+}
+
+function getSavedPyCode(problemId) {
+    if (state.memoryStore.py.has(problemId)) {
+        return state.memoryStore.py.get(problemId);
+    }
+    const val = safeStorageGet(STORAGE_KEYS.PY_CODE_PREFIX + problemId);
+    if (val !== null) {
+        state.memoryStore.py.set(problemId, val);
+    }
+    return val;
+}
+
+function setSavedPyCode(problemId, code) {
+    if (!problemId) return;
+    state.memoryStore.py.set(problemId, code);
+    state.hasUnsavedChangesInMemory = true;
+    safeStorageSet(STORAGE_KEYS.PY_CODE_PREFIX + problemId, code);
+}
+
+function getLastProblemForChapter(chapterId) {
+    if (state.memoryStore.lastProblemByChap.has(chapterId)) {
+        return state.memoryStore.lastProblemByChap.get(chapterId);
+    }
+    const val = safeStorageGet(STORAGE_KEYS.LAST_PROBLEM_BY_CHAP + chapterId);
+    if (val) {
+        state.memoryStore.lastProblemByChap.set(chapterId, val);
+    }
+    return val;
+}
+
+function setLastProblemForChapter(chapterId, problemId) {
+    if (!chapterId || !problemId) return;
+    state.memoryStore.lastProblemByChap.set(chapterId, problemId);
+    safeStorageSet(STORAGE_KEYS.LAST_PROBLEM_BY_CHAP + chapterId, problemId);
+}
+
+function updateStorageStatusUI() {
+    if (!state.storageAvailable) {
+        if (dom.storageWarningBanner) {
+            dom.storageWarningBanner.classList.remove('hidden');
+        }
+        if (dom.autosaveStatus) {
+            dom.autosaveStatus.textContent = '⚠️ 自動保存オフ（要ファイル保存）';
+            dom.autosaveStatus.classList.add('is-warning');
+        }
+    } else {
+        if (dom.storageWarningBanner) {
+            dom.storageWarningBanner.classList.add('hidden');
+        }
+        if (dom.autosaveStatus) {
+            dom.autosaveStatus.textContent = '✓ 自動保存オン';
+            dom.autosaveStatus.classList.remove('is-warning');
+        }
+    }
+}
 
 // ===================================================
 // 3. DOM要素参照
@@ -296,6 +412,7 @@ const dom = {};
 function cacheDomElements() {
     dom.pyodideStatus = document.getElementById('pyodide-status');
     dom.pyodideStatusText = document.getElementById('pyodide-status-text');
+    dom.storageWarningBanner = document.getElementById('storage-warning-banner');
 
     dom.chapterSelect = document.getElementById('chapter-select');
     dom.problemSelect = document.getElementById('problem-select');
@@ -306,6 +423,7 @@ function cacheDomElements() {
     dom.jpLineNumbers = document.getElementById('jp-line-numbers');
     dom.jpEditor = document.getElementById('jp-editor');
     dom.jpHighlightLayer = document.getElementById('jp-highlight-layer');
+    dom.btnSaveJp = document.getElementById('btn-save-jp');
     dom.btnCopyJp = document.getElementById('btn-copy-jp');
     dom.btnConvert = document.getElementById('btn-convert');
     dom.convertSpinner = document.getElementById('convert-spinner');
@@ -314,6 +432,7 @@ function cacheDomElements() {
     dom.pyLineNumbers = document.getElementById('py-line-numbers');
     dom.pyEditor = document.getElementById('py-editor');
     dom.pyHighlightLayer = document.getElementById('py-highlight-layer');
+    dom.btnSavePy = document.getElementById('btn-save-py');
     dom.btnCopyPy = document.getElementById('btn-copy-py');
     dom.btnRun = document.getElementById('btn-run');
     dom.consoleOutput = document.getElementById('console-output');
@@ -324,6 +443,19 @@ function cacheDomElements() {
 // ===================================================
 document.addEventListener('DOMContentLoaded', async () => {
     cacheDomElements();
+
+    // localStorage利用可能検査 ＆ 警告UI反映
+    state.storageAvailable = checkLocalStorageAvailable();
+    updateStorageStatusUI();
+
+    // 自動保存が無効な環境でタブを閉じようとした際の離脱防止ガード
+    window.addEventListener('beforeunload', (e) => {
+        if (!state.storageAvailable && state.hasUnsavedChangesInMemory) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
     initEditors();
 
     // Python実行環境の初期化（内蔵エンジンにより待ち時間ゼロで即座に実行可能）
@@ -358,7 +490,7 @@ async function loadProblemsIndex() {
     state.chapters = data.chapters || [];
     renderDropdowns();
 
-    const savedProblemId = localStorage.getItem(STORAGE_KEYS.SELECTED_PROBLEM);
+    const savedProblemId = safeStorageGet(STORAGE_KEYS.SELECTED_PROBLEM) || state.memoryStore.selectedProblem;
     const firstProblemId = state.problemMap.keys().next().value;
     const targetId = (savedProblemId && state.problemMap.has(savedProblemId))
         ? savedProblemId
@@ -394,13 +526,18 @@ function renderDropdowns() {
         });
     });
 
-    // 2. 章（Chap）変更時のイベントリスナー
+    // 2. 章（Chap）変更時のイベントリスナー（その章で直前に作業していた問題を優先復元）
     dom.chapterSelect.addEventListener('change', (e) => {
         const selectedChapId = e.target.value;
+        const lastProbId = getLastProblemForChapter(selectedChapId);
+        const chapter = state.chapters.find((c) => c.chapterId === selectedChapId);
+        const hasLastProb = lastProbId && chapter && (chapter.problems || []).some((p) => p.id === lastProbId);
         const firstProb = getFirstProblemOfChapter(selectedChapId);
-        populateProblemDropdown(selectedChapId, firstProb ? firstProb.id : null);
-        if (firstProb) {
-            selectProblem(firstProb.id);
+        const targetProbId = hasLastProb ? lastProbId : (firstProb ? firstProb.id : null);
+
+        populateProblemDropdown(selectedChapId, targetProbId);
+        if (targetProbId) {
+            selectProblem(targetProbId);
         }
     });
 
@@ -445,8 +582,16 @@ async function selectProblem(problemId) {
     const meta = state.problemMap.get(problemId);
     if (!meta) return;
 
+    // 別の問題へ切り替える際、直前まで作業していた問題のコードを裏側で無音・即座に保存
+    if (state.currentProblemId && state.currentProblemId !== problemId) {
+        setSavedJpCode(state.currentProblemId, dom.jpEditor.value);
+        setSavedPyCode(state.currentProblemId, dom.pyEditor.value);
+    }
+
     state.currentProblemId = problemId;
-    localStorage.setItem(STORAGE_KEYS.SELECTED_PROBLEM, problemId);
+    state.memoryStore.selectedProblem = problemId;
+    safeStorageSet(STORAGE_KEYS.SELECTED_PROBLEM, problemId);
+    setLastProblemForChapter(meta.chapterId, problemId);
 
     // 章セレクトと問題セレクトの選択状態を同期
     if (dom.chapterSelect.value !== meta.chapterId) {
@@ -478,19 +623,22 @@ async function selectProblem(problemId) {
 
     dom.problemDesc.textContent = problemData.description || '';
 
-    const savedJp = localStorage.getItem(STORAGE_KEYS.JP_CODE_PREFIX + problemId);
+    // 日本語コードの復元
+    const savedJp = getSavedJpCode(problemId);
     const initialJp = savedJp !== null ? savedJp : (problemData.template || '');
     setJpEditorValue(initialJp, false);
 
-    // 問題を読み込んだら、Pythonに変換まで自動で実行
-    if (initialJp.trim()) {
+    // Pythonコードの復元（保存済みのPythonコードがあればそれを最優先で復元し、自動変換で上書きしない）
+    const savedPy = getSavedPyCode(problemId);
+    if (savedPy !== null) {
+        setPyEditorValue(savedPy, false);
+    } else if (initialJp.trim()) {
         try {
             const pythonCode = transpileDnclToPython(initialJp);
-            setPyEditorValue(pythonCode, true);
+            setPyEditorValue(pythonCode, false);
         } catch (err) {
             console.error('Auto transpile error:', err);
-            const savedPy = localStorage.getItem(STORAGE_KEYS.PY_CODE_PREFIX + problemId);
-            setPyEditorValue(savedPy !== null ? savedPy : '# 左側の「Pythonに変換 ➔」ボタンを押すと、ここにPythonコードが自動生成されます。\n', false);
+            setPyEditorValue('# 左側の「Pythonに変換 ➔」ボタンを押すと、ここにPythonコードが自動生成されます。\n', false);
         }
     } else {
         setPyEditorValue('# 左側の「Pythonに変換 ➔」ボタンを押すと、ここにPythonコードが自動生成されます。\n', false);
@@ -540,7 +688,10 @@ function initEditors() {
                 setPyEditorValue(pythonCode, true);
             } catch (err) {
                 console.error('Reset auto transpile error:', err);
+                setPyEditorValue('# 左側の「Pythonに変換 ➔」ボタンを押すと、ここにPythonコードが自動生成されます。\n', true);
             }
+        } else {
+            setPyEditorValue('# 左側の「Pythonに変換 ➔」ボタンを押すと、ここにPythonコードが自動生成されます。\n', true);
         }
         showAutosaveFeedback('初期状態にリセットしました');
     });
@@ -573,6 +724,20 @@ function initEditors() {
         });
     }
 
+    // コードのテキストファイル保存（.txt ダウンロード）機能
+    if (dom.btnSaveJp) {
+        dom.btnSaveJp.addEventListener('click', () => {
+            const filename = buildSaveFilename('日本語コード');
+            downloadTextFile(dom.jpEditor.value, filename, dom.btnSaveJp, '💾 保存');
+        });
+    }
+    if (dom.btnSavePy) {
+        dom.btnSavePy.addEventListener('click', () => {
+            const filename = buildSaveFilename('Pythonコード');
+            downloadTextFile(dom.pyEditor.value, filename, dom.btnSavePy, '💾 保存');
+        });
+    }
+
     // コードのクリップボードコピー機能
     if (dom.btnCopyJp) {
         dom.btnCopyJp.addEventListener('click', () => {
@@ -583,6 +748,51 @@ function initEditors() {
         dom.btnCopyPy.addEventListener('click', () => {
             copyToClipboard(dom.pyEditor.value, dom.btnCopyPy, '📋 コピー');
         });
+    }
+}
+
+function buildSaveFilename(suffix) {
+    const meta = state.currentProblemId ? state.problemMap.get(state.currentProblemId) : null;
+    if (!meta) {
+        return `プログラム_${suffix}.txt`;
+    }
+    const chapPart = (meta.chapterTitle || meta.chapterId || '').replace(/\s+/g, '');
+    const probPart = (meta.title || meta.id || '').replace(/\s+/g, '_');
+    const rawName = `${chapPart}_${probPart}_${suffix}.txt`;
+    return rawName.replace(/[\\/:*?"<>|]/g, '_');
+}
+
+function downloadTextFile(text, filename, button, defaultLabel = '💾 保存') {
+    try {
+        // Windowsのメモ帳等で文字化けしないよう UTF-8 BOM を付与
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        if (button) {
+            button.textContent = '✓ 保存完了！';
+            button.classList.add('copied');
+            setTimeout(() => {
+                button.textContent = defaultLabel;
+                button.classList.remove('copied');
+            }, 1800);
+        }
+    } catch (err) {
+        console.error('File save error:', err);
+        if (button) {
+            button.textContent = '✕ 保存失敗';
+            setTimeout(() => {
+                button.textContent = defaultLabel;
+                button.classList.remove('copied');
+            }, 1800);
+        }
     }
 }
 
@@ -651,17 +861,22 @@ function setPyEditorValue(text, shouldSave = true) {
 
 function saveCurrentJpCode() {
     if (!state.currentProblemId) return;
-    localStorage.setItem(STORAGE_KEYS.JP_CODE_PREFIX + state.currentProblemId, dom.jpEditor.value);
+    setSavedJpCode(state.currentProblemId, dom.jpEditor.value);
     showAutosaveFeedback('自動保存済み');
 }
 
 function saveCurrentPyCode() {
     if (!state.currentProblemId) return;
-    localStorage.setItem(STORAGE_KEYS.PY_CODE_PREFIX + state.currentProblemId, dom.pyEditor.value);
+    setSavedPyCode(state.currentProblemId, dom.pyEditor.value);
+    showAutosaveFeedback('自動保存済み');
 }
 
 let autosaveTimer = null;
 function showAutosaveFeedback(msg) {
+    if (!state.storageAvailable) {
+        updateStorageStatusUI();
+        return;
+    }
     const now = new Date();
     const hh = String(now.getHours()).padStart(2, '0');
     const mm = String(now.getMinutes()).padStart(2, '0');
@@ -669,7 +884,9 @@ function showAutosaveFeedback(msg) {
     dom.autosaveStatus.textContent = `✓ ${msg} (${hh}:${mm}:${ss})`;
     clearTimeout(autosaveTimer);
     autosaveTimer = setTimeout(() => {
-        dom.autosaveStatus.textContent = '✓ 自動保存オン';
+        if (state.storageAvailable) {
+            dom.autosaveStatus.textContent = '✓ 自動保存オン';
+        }
     }, 3000);
 }
 
