@@ -110,22 +110,22 @@ const FALLBACK_PROBLEMS_INDEX = {
                                           },
                                           {
                                               "id":  "c03_ex03",
-                                              "title":  "例3 条件繰り返し（チャージ残高の消費）",
+                                              "title":  "例3 条件繰り返し（入力累積加算）",
                                               "file":  "chap03/ex03.json"
                                           },
                                           {
                                               "id":  "c03_q03",
-                                              "title":  "問3 条件繰り返し（目標金額までの貯金）",
+                                              "title":  "問3 条件繰り返し（入力累積減算）",
                                               "file":  "chap03/q03.json"
                                           },
                                           {
                                               "id":  "c03_ex04",
-                                              "title":  "例4 複合条件（かつ：アトラクション入場案内）",
+                                              "title":  "例4 複合条件（かつ）",
                                               "file":  "chap03/ex04.json"
                                           },
                                           {
                                               "id":  "c03_q04",
-                                              "title":  "問4 複合条件（または：特別割引判定）",
+                                              "title":  "問4 複合条件（または）",
                                               "file":  "chap03/q04.json"
                                           },
                                           {
@@ -152,9 +152,9 @@ const FALLBACK_PROBLEM_FILES = {
                         },
     "chap03/ex03.json":  {
                              "id":  "c03_ex03",
-                             "title":  "例3 条件繰り返し（チャージ残高の消費）",
-                             "description":  "チャージ残高(money)が 0 より大きい間、買い物の金額を入力して残高から引き続ける手順です。",
-                             "template":  "money = 1000\n表示する(\"現在のチャージ残高は\", money, \"円です。\")\nmoney が 0 より大きい間，繰り返す:\n　price = ユーザ入力()\n　money = money - price\n　表示する(\"買い物をしました。残りは\", money, \"円です。\")\n表示する(\"残高がなくなりました。チャージしてください！\")"
+                             "title":  "例3 条件繰り返し（入力累積加算）",
+                             "description":  "変数 num が 20 より小さい間、ユーザ入力() で数を足し続けていき、20 を超えたら終了する手順です。",
+                             "template":  "num = 0\nnum が 20 より小さい間 繰り返す\n　x = ユーザ入力(\"1から5までの数を入力：\")\n　num = num+x\n表示する(num,\"になりました。20を超えました\")"
                          },
     "chap03/ex02.json":  {
                              "id":  "c03_ex02",
@@ -166,7 +166,7 @@ const FALLBACK_PROBLEM_FILES = {
                              "id":  "c03_ex05",
                              "title":  "例5 ループと分岐（偶数・奇数の判定）",
                              "description":  "1 から 15 までの数をループで回し、各数が偶数か奇数かを判定して表示する手順です。",
-                             "template":  "i を 1 から 15 まで 1 ずつ増やしながら繰り返す:\n　もし i % 2 が 0 と等しいならば\n　　表示する(i, \"は【偶数】です\")\n　そうでなければ\n　　表示する(i, \"は【奇数】です\")"
+                             "template":  "i を 1 から 15 まで 1 ずつ増やしながら繰り返す:\n　もし i % 2 が 0 と等しいならば\n　　表示する(i, \"は偶数です\")\n　そうでなければ\n　　表示する(i, \"は奇数です\")"
                          },
     "chap02/ex01.json":  {
                              "id":  "c02_ex01",
@@ -188,15 +188,15 @@ const FALLBACK_PROBLEM_FILES = {
                          },
     "chap03/q03.json":  {
                             "id":  "c03_q03",
-                            "title":  "問3 条件繰り返し（目標金額までの貯金）",
-                            "description":  "貯金額(total)が目標金額(target=1000)より小さい間、追加入力(pay)を足し続けて目標達成を目指す手順を完成させよう。",
-                            "template":  "total = 0\ntarget = 1000\n表示する(\"目標金額は\", target, \"円です！\")\ntotal が target より小さい間，繰り返す:\n　pay = ユーザ入力()\n　total = total + pay\n　表示する(\"現在の貯金額:\", total, \"円\")\n表示する(\"目標の\", target, \"円を達成しました！おめでとう！\")"
+                            "title":  "問3 条件繰り返し（入力累積減算）",
+                            "description":  "変数 num が 0 より大きい間、ユーザ入力() で数を引き続けていき、0 より小さくなったら終了する手順を完成させよう。○○に条件を入れてください。",
+                            "template":  "num = 20\nnum が ○○間 繰り返す\n　x = ユーザ入力(\"1から5までの数を入力：\")\n　num = num-x\n表示する(num,\"になりました。0より小さくなりました\")"
                         },
     "chap03/q04.json":  {
                             "id":  "c03_q04",
-                            "title":  "問4 複合条件（または：特別割引判定）",
-                            "description":  "曜日(day)が「水曜日」または天気(weather)が「雨」の場合に特別割引を適用する手順を完成させよう。",
-                            "template":  "day = ユーザ入力()\nweather = ユーザ入力()\nもし day が \"水曜日\" と等しい または weather が \"雨\" と等しいならば\n　表示する(\"特別割引！100円引きになります！\")\nそうでなければ\n　表示する(\"通常料金です。\")"
+                            "title":  "問4 複合条件（または）",
+                            "description":  "購入金額(price)と会員ランク(rank)を受け取り、金額が○○以上またはランクが○○の場合に「送料無料」、それ以外は「送料500円」と表示する手順を完成させよう。○○を適切な内容に変更してください。",
+                            "template":  "price = ユーザ入力(\"購入金額：\")\nrank = ユーザ入力(\"会員ランク（A, B）：\")\nもし price が ○○ 以上 ○○ rank が ○○ と等しいならば\n　表示する(\"送料無料\")\nそうでなければ\n　表示する(\"送料500円\")"
                         },
     "chap03/ex01.json":  {
                              "id":  "c03_ex01",
@@ -218,15 +218,15 @@ const FALLBACK_PROBLEM_FILES = {
                         },
     "chap03/ex04.json":  {
                              "id":  "c03_ex04",
-                             "title":  "例4 複合条件（かつ：アトラクション入場案内）",
-                             "description":  "身長(height)とチケット種類(ticket)の「かつ」の組み合わせによる優先・通常・利用不可の案内手順です。",
-                             "template":  "height = ユーザ入力()\nticket = ユーザ入力()\nもし height が 120 以上 かつ ticket が \"プレミアム\" と等しいならば\n　表示する(\"優先レーンからご案内します！楽しんできてください！\")\nそうでなく もし height が 120 以上ならば\n　表示する(\"通常レーンからご案内します。列に並んでお待ちください。\")\nそうでなければ\n　表示する(\"身長制限（120cm以上）を満たしていないため、ご乗車いただけません。\")"
+                             "title":  "例4 複合条件（かつ）",
+                             "description":  "テストの点数(score)とレポート評価(report)を受け取り、点数が80以上かつ評価が「A」の場合に「合格」、それ以外は「不合格」と表示する手順です。",
+                             "template":  "score = ユーザ入力(\"テストの点数：\")\nreport = ユーザ入力(\"レポート評価(A,B,C)：\")\nもし score が 80 以上 かつ report が \"A\" と等しいならば\n　表示する(\"合格\")\nそうでなければ\n　表示する(\"不合格\")"
                          },
     "chap03/q05.json":  {
                             "id":  "c03_q05",
                             "title":  "問5 ループと多重分岐（3と5の倍数判定）",
-                            "description":  "1 から 20 までの数をループで回し、3と5の倍数、3の倍数、5の倍数をそれぞれ判定して表示する手順（FizzBuzz）を完成させよう。",
-                            "template":  "i を 1 から 20 まで 1 ずつ増やしながら繰り返す:\n　もし i % 3 が 0 と等しい かつ i % 5 が 0 と等しいならば\n　　表示する(i, \"は3と5の倍数\")\n　そうでなく もし i % 3 が 0 と等しいならば\n　　表示する(i, \"は3の倍数\")\n　そうでなく もし i % 5 が 0 と等しいならば\n　　表示する(i, \"は5の倍数\")\n　そうでなければ\n　　表示する(i)"
+                            "description":  "1 から 20 までの数をループで回し、3と5の倍数、3の倍数、5の倍数をそれぞれ判定して表示する手順（FizzBuzz）を完成させよう。○○を適切な内容に変更してください。",
+                            "template":  "i を 1 から ○○ まで 1 ずつ増やしながら繰り返す:\n　もし iを3で割った余りが 0 と等しい ○○ iを5で割った余り が 0 と等しいならば\n　　表示する(i, \"は3と5の倍数\")\n　そうでなく もし iを3で割った余りが 0 と等しいならば\n　　表示する(i, \"は3の倍数\")\n　そうでなく もし iを5で割った余りが 0 と等しいならば\n　　表示する(i, \"は5の倍数\")\n　そうでなければ\n　　表示する(i)"
                         },
     "chap02/ex05.json":  {
                              "id":  "c02_ex05",
@@ -390,7 +390,7 @@ function updateStorageStatusUI() {
             dom.storageWarningBanner.classList.remove('hidden');
         }
         if (dom.autosaveStatus) {
-            dom.autosaveStatus.textContent = '⚠️ 自動保存オフ（要ファイル保存）';
+            dom.autosaveStatus.textContent = '⚠️ 自動保存オフ（要ダウンロード）';
             dom.autosaveStatus.classList.add('is-warning');
         }
     } else {
@@ -724,17 +724,17 @@ function initEditors() {
         });
     }
 
-    // コードのテキストファイル保存（.txt ダウンロード）機能
+    // コードのテキストファイルダウンロード（.txt ダウンロード）機能
     if (dom.btnSaveJp) {
         dom.btnSaveJp.addEventListener('click', () => {
             const filename = buildSaveFilename('日本語コード');
-            downloadTextFile(dom.jpEditor.value, filename, dom.btnSaveJp, '💾 保存');
+            downloadTextFile(dom.jpEditor.value, filename, dom.btnSaveJp, '📥 ダウンロード');
         });
     }
     if (dom.btnSavePy) {
         dom.btnSavePy.addEventListener('click', () => {
             const filename = buildSaveFilename('Pythonコード');
-            downloadTextFile(dom.pyEditor.value, filename, dom.btnSavePy, '💾 保存');
+            downloadTextFile(dom.pyEditor.value, filename, dom.btnSavePy, '📥 ダウンロード');
         });
     }
 
@@ -762,7 +762,7 @@ function buildSaveFilename(suffix) {
     return rawName.replace(/[\\/:*?"<>|]/g, '_');
 }
 
-function downloadTextFile(text, filename, button, defaultLabel = '💾 保存') {
+function downloadTextFile(text, filename, button, defaultLabel = '📥 ダウンロード') {
     try {
         // Windowsのメモ帳等で文字化けしないよう UTF-8 BOM を付与
         const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
@@ -777,7 +777,7 @@ function downloadTextFile(text, filename, button, defaultLabel = '💾 保存') 
         setTimeout(() => URL.revokeObjectURL(url), 1000);
 
         if (button) {
-            button.textContent = '✓ 保存完了！';
+            button.textContent = '✓ ダウンロード完了！';
             button.classList.add('copied');
             setTimeout(() => {
                 button.textContent = defaultLabel;
@@ -787,7 +787,7 @@ function downloadTextFile(text, filename, button, defaultLabel = '💾 保存') 
     } catch (err) {
         console.error('File save error:', err);
         if (button) {
-            button.textContent = '✕ 保存失敗';
+            button.textContent = '✕ 失敗';
             setTimeout(() => {
                 button.textContent = defaultLabel;
                 button.classList.remove('copied');
@@ -1756,17 +1756,18 @@ function convertForLoopLine(line) {
     const repeatWord = '(?:繰り返す|くりかえす|繰返す|ループする|ループ)';
 
     // 1. 減分ループ: i を(が/は/=) A から B まで [C ずつ] 減らしながら繰り返す
-    const forDecMatch = cleaned.match(new RegExp(`^([A-Za-z_][A-Za-z0-9_]*)\\s*(?:を|が|は|=)\\s*(.+?)\\s*から\\s*(.+?)\\s*まで\\s*(?:(.+?)\\s*ずつ\\s*)?(?:減らしながら|減らして|減算しながら|減らす)(?:\\s*${repeatWord})?$`));
+    const forDecMatch = cleaned.match(new RegExp(`^([A-Za-z_][A-Za-z0-9_]*)\\s*(?:を|が|は|=)\\s*(.+?)\\s*から\\s*(.+?)\\s*まで\\s*(?:(.+?)\\s*ずつ\\s*)?(?:減らしながら|減らして|減算しながら|減らす|へらしながら|へらして)(?:\\s*${repeatWord})?$`));
     if (forDecMatch) {
         const varName = forDecMatch[1].trim();
         const startExpr = forDecMatch[2].trim();
         const endExpr = forDecMatch[3].trim();
         const stepExpr = (forDecMatch[4] || '1').trim();
-        return `for ${varName} in range(${startExpr}, ${endExpr} - 1, -${stepExpr}):`;
+        const endMinusOne = simplifyMinusOne(endExpr);
+        return `for ${varName} in range(${startExpr}, ${endMinusOne}, -${stepExpr}):`;
     }
 
     // 2. 増分ループ: i を(が/は/=) A から B まで [C ずつ増やしながら] 繰り返す
-    const forIncMatch = cleaned.match(new RegExp(`^([A-Za-z_][A-Za-z0-9_]*)\\s*(?:を|が|は|=)\\s*(.+?)\\s*から\\s*(.+?)\\s*まで\\s*(?:(.+?)\\s*ずつ\\s*)?(?:(?:増やしながら|増やして|加算しながら)\\s*${repeatWord}|${repeatWord}|増やしながら|増やす)$`));
+    const forIncMatch = cleaned.match(new RegExp(`^([A-Za-z_][A-Za-z0-9_]*)\\s*(?:を|が|は|=)\\s*(.+?)\\s*から\\s*(.+?)\\s*まで\\s*(?:(.+?)\\s*ずつ\\s*)?(?:(?:増やしながら|増やして|加算しながら|ふやしながら|ふやして)\\s*${repeatWord}|${repeatWord}|増やしながら|増やして|ふやしながら|ふやして|増やす|ふやす)$`));
     if (forIncMatch) {
         const varName = forIncMatch[1].trim();
         const startExpr = forIncMatch[2].trim();
@@ -1774,30 +1775,26 @@ function convertForLoopLine(line) {
         const stepExpr = (forIncMatch[4] || '1').trim();
         const endPlusOne = simplifyPlusOne(endExpr);
 
-        if (stepExpr === '1') {
-            return `for ${varName} in range(${startExpr}, ${endPlusOne}):`;
-        }
         return `for ${varName} in range(${startExpr}, ${endPlusOne}, ${stepExpr}):`;
     }
 
     // 3. 語順逆転パターン: A から B まで i を [C ずつ増やしながら] 繰り返す
-    const revForMatch = cleaned.match(new RegExp(`^(.+?)\\s*から\\s*(.+?)\\s*まで\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*(?:を|が|は)\\s*(?:(.+?)\\s*ずつ\\s*)?(?:増やしながら|増やして)?\\s*${repeatWord}$`));
+    const revForMatch = cleaned.match(new RegExp(`^(.+?)\\s*から\\s*(.+?)\\s*まで\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*(?:を|が|は)\\s*(?:(.+?)\\s*ずつ\\s*)?(?:増やしながら|増やして|ふやしながら|ふやして)?\\s*${repeatWord}$`));
     if (revForMatch) {
         const startExpr = revForMatch[1].trim();
         const endExpr = revForMatch[2].trim();
         const varName = revForMatch[3].trim();
         const stepExpr = (revForMatch[4] || '1').trim();
         const endPlusOne = simplifyPlusOne(endExpr);
-        if (stepExpr === '1') {
-            return `for ${varName} in range(${startExpr}, ${endPlusOne}):`;
-        }
         return `for ${varName} in range(${startExpr}, ${endPlusOne}, ${stepExpr}):`;
     }
 
-    // 4. 回数指定ループ: N 回繰り返す
+    // 4. 回数指定ループ: N 回繰り返す (1からNまで1ずつ)
     const repeatCountMatch = cleaned.match(new RegExp(`^(.+?)\\s*回\\s*${repeatWord}$`));
     if (repeatCountMatch) {
-        return `for i in range(${repeatCountMatch[1].trim()}):`;
+        const countExpr = repeatCountMatch[1].trim();
+        const countPlusOne = simplifyPlusOne(countExpr);
+        return `for i in range(1, ${countPlusOne}, 1):`;
     }
 
     return null;
@@ -1845,6 +1842,13 @@ function simplifyPlusOne(expr) {
         return String(parseInt(expr, 10) + 1);
     }
     return `${expr} + 1`;
+}
+
+function simplifyMinusOne(expr) {
+    if (/^\d+$/.test(expr)) {
+        return String(parseInt(expr, 10) - 1);
+    }
+    return `${expr} - 1`;
 }
 
 // ===================================================

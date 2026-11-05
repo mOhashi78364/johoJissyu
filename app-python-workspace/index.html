@@ -33,7 +33,7 @@
 
     <!-- localStorage無効時の警告バナー（通常時はhidden） -->
     <div id="storage-warning-banner" class="storage-warning-banner hidden" role="alert">
-        ⚠️ <strong>ブラウザの自動保存が無効です：</strong>タブを閉じると作成途中のプログラムが消去されます。必要なデータは「💾 保存」ボタンからテキストファイルとして保存してください。
+        ⚠️ <strong>ブラウザの自動保存が無効です：</strong>タブを閉じると作成途中のプログラムが消去されます。必要なデータは「📥 ダウンロード」ボタンからテキストファイルとして保存してください。
     </div>
 
     <!-- ===================================================
@@ -72,12 +72,12 @@
                     <p id="problem-desc" class="problem-desc">問題データを読み込んでいます...</p>
                 </div>
 
-                <!-- 中央：日本語コード記述エディタ（行番号付き・保存/コピー/リセットボタン付き） -->
+                <!-- 中央：日本語コード記述エディタ（行番号付き・ダウンロード/コピー/リセットボタン付き） -->
                 <div class="editor-toolbar">
                     <span class="editor-label">📝 日本語コード</span>
                     <div class="editor-toolbar-actions">
-                        <button type="button" id="btn-save-jp" class="btn-tool" title="日本語コードをテキストファイル(.txt)として保存">
-                            💾 保存
+                        <button type="button" id="btn-save-jp" class="btn-tool" title="日本語コードをテキストファイル(.txt)としてダウンロード">
+                            📥 ダウンロード
                         </button>
                         <button type="button" id="btn-copy-jp" class="btn-tool" title="日本語コードをクリップボードにコピー">
                             📋 コピー
@@ -130,8 +130,8 @@
                 <div class="editor-toolbar">
                     <span class="editor-label">🐍 Python コード（直接編集もできます）</span>
                     <div class="editor-toolbar-actions">
-                        <button type="button" id="btn-save-py" class="btn-tool" title="Pythonコードをテキストファイル(.txt)として保存">
-                            💾 保存
+                        <button type="button" id="btn-save-py" class="btn-tool" title="Pythonコードをテキストファイル(.txt)としてダウンロード">
+                            📥 ダウンロード
                         </button>
                         <button type="button" id="btn-copy-py" class="btn-tool" title="Pythonコードをクリップボードにコピー">
                             📋 コピー
