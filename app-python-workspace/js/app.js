@@ -137,6 +137,16 @@ const FALLBACK_PROBLEMS_INDEX = {
                                               "id":  "c03_q05",
                                               "title":  "問5 ループと多重分岐（3と5の倍数判定）",
                                               "file":  "chap03/q05.json"
+                                          },
+                                          {
+                                              "id":  "c03_q06",
+                                              "title":  "問6 ループと条件分岐によるカウント（3の倍数の個数）",
+                                              "file":  "chap03/q06.json"
+                                          },
+                                          {
+                                              "id":  "c03_q07",
+                                              "title":  "問7 発展：条件繰り返し（貯金目標の達成）",
+                                              "file":  "chap03/q07.json"
                                           }
                                       ]
                      }
@@ -144,138 +154,246 @@ const FALLBACK_PROBLEMS_INDEX = {
 };
 
 const FALLBACK_PROBLEM_FILES = {
-    "chap02/q03.json":  {
-                            "id":  "c02_q03",
-                            "title":  "問3 気温による警告表示（if文）",
-                            "description":  "ユーザ入力() で気温(temp)を受け取り、30度以上のときに「熱中症に気をつけて！」と警告を表示する手順を完成させよう。○○に条件を入れてください。",
-                            "template":  "temp = ユーザ入力(\"気温を入力\")\nもし ○○ ならば\n　表示する(\"熱中症に気をつけて！\")\n表示する(\"計測完了\")"
-                        },
-    "chap03/ex03.json":  {
-                             "id":  "c03_ex03",
-                             "title":  "例3 条件繰り返し（入力累積加算）",
-                             "description":  "変数 num が 20 より小さい間、ユーザ入力() で数を足し続けていき、20 を超えたら終了する手順です。",
-                             "template":  "num = 0\nnum が 20 より小さい間 繰り返す\n　x = ユーザ入力(\"1から5までの数を入力：\")\n　num = num+x\n表示する(num,\"になりました。20を超えました\")"
-                         },
-    "chap03/ex02.json":  {
-                             "id":  "c03_ex02",
-                             "title":  "例2 1から10までの総和（累計計算）",
-                             "description":  "変数 total に 1 から 10 までの数を順番に足し合わせていき、合計を求める手順です。",
-                             "template":  "total = 0\ni を 1 から 10 まで 1 ずつ増やしながら繰り返す:\n　total = total + i\n　表示する(i, \"を足しました。現在の合計:\", total)\n表示する(\"最終的な合計は\", total, \"です！\")"
-                         },
-    "chap03/ex05.json":  {
-                             "id":  "c03_ex05",
-                             "title":  "例5 ループと分岐（偶数・奇数の判定）",
-                             "description":  "1 から 15 までの数をループで回し、各数が偶数か奇数かを判定して表示する手順です。",
-                             "template":  "i を 1 から 15 まで 1 ずつ増やしながら繰り返す:\n　もし i % 2 が 0 と等しいならば\n　　表示する(i, \"は偶数です\")\n　そうでなければ\n　　表示する(i, \"は奇数です\")"
-                         },
-    "chap02/ex01.json":  {
-                             "id":  "c02_ex01",
-                             "title":  "例1 名前の入力とあいさつ",
-                             "description":  "ユーザ入力() で名前を受け取り、変数 name に代入してあいさつを表示する手順です。",
-                             "template":  "name = ユーザ入力(\"名前を入力\")\n表示する(\"こんにちは、\", name, \"さん！\")"
-                         },
-    "chap02/ex03.json":  {
-                             "id":  "c02_ex03",
-                             "title":  "例3 条件分岐（単一のif）",
-                             "description":  "ユーザ入力() で点数を受け取り、80点以上の場合にメッセージを表示する手順です。",
-                             "template":  "score = ユーザ入力()\nもし scoreが80以上ならば\n　表示する(\"素晴らしい！合格点突破です！\")\n表示する(\"判定が終了しました。\")"
-                         },
-    "chap02/ex02.json":  {
-                             "id":  "c02_ex02",
-                             "title":  "例2 商と余りの計算（あめの分配）",
-                             "description":  "13個のあめを4人に均等に配るときの1人あたりの個数（商 //）と余り（余り %）を計算して表示する手順です。",
-                             "template":  "candy = 13\npeople = 4\nsho = candy // people\namari = candy % people\n表示する(\"1人あたり\", sho, \"個配れます\")\n表示する(\"余りは\", amari, \"個です\")"
-                         },
-    "chap03/q03.json":  {
-                            "id":  "c03_q03",
-                            "title":  "問3 条件繰り返し（入力累積減算）",
-                            "description":  "変数 num が 0 より大きい間、ユーザ入力() で数を引き続けていき、0 より小さくなったら終了する手順を完成させよう。○○に条件を入れてください。",
-                            "template":  "num = 20\nnum が ○○間 繰り返す\n　x = ユーザ入力(\"1から5までの数を入力：\")\n　num = num-x\n表示する(num,\"になりました。0より小さくなりました\")"
-                        },
-    "chap03/q04.json":  {
-                            "id":  "c03_q04",
-                            "title":  "問4 複合条件（または）",
-                            "description":  "購入金額(price)と会員ランク(rank)を受け取り、金額が○○以上またはランクが○○の場合に「送料無料」、それ以外は「送料500円」と表示する手順を完成させよう。○○を適切な内容に変更してください。",
-                            "template":  "price = ユーザ入力(\"購入金額：\")\nrank = ユーザ入力(\"会員ランク（A, B）：\")\nもし price が ○○ 以上 ○○ rank が ○○ と等しいならば\n　表示する(\"送料無料\")\nそうでなければ\n　表示する(\"送料500円\")"
-                        },
-    "chap03/ex01.json":  {
-                             "id":  "c03_ex01",
-                             "title":  "例1 決まった回数の繰り返し",
-                             "description":  "ループカウンタ変数 i を使って、1 から 5 までの決まった回数の処理を繰り返す手順です。",
-                             "template":  "i を 1 から 5 まで 1 ずつ増やしながら繰り返す:\n　表示する(\"こんにちは！\")\n　表示する(\"いま\", i, \"回目のループです\")\n表示する(\"終了しました\")"
-                         },
-    "chap02/ex04.json":  {
-                             "id":  "c02_ex04",
-                             "title":  "例4 条件分岐（if〜else：偶数奇数の判定）",
-                             "description":  "入力された値が偶数なら偶数ですと表示し、奇数なら奇数ですと表示する。",
-                             "template":  "num = newInput(\"整数を入力\")\nもし numを2で割った余りが0 ならば\n　表示する(\"偶数ですね\")\n　表示する(\"2で割り切れますね！\")\nそうでなければ\n　表示する(\"奇数です\")\n　表示する(\"2で割り切れませんね！\")\n表示する(\"判定終了\")"
-                         },
-    "chap03/q02.json":  {
-                            "id":  "c03_q02",
-                            "title":  "問2 偶数の合計計算（2から100まで）",
-                            "description":  "2 から 100 までの偶数を 2 ずつ増やしながら足し合わせ、その合計(total)を表示する手順を完成させよう。",
-                            "template":  "total = 0\ni を 2 から 100 まで 2 ずつ増やしながら繰り返す:\n　total = total + i\n表示する(\"1から100までの偶数の合計は\", total, \"です！\")"
-                        },
-    "chap03/ex04.json":  {
-                             "id":  "c03_ex04",
-                             "title":  "例4 複合条件（かつ）",
-                             "description":  "テストの点数(score)とレポート評価(report)を受け取り、点数が80以上かつ評価が「A」の場合に「合格」、それ以外は「不合格」と表示する手順です。",
-                             "template":  "score = ユーザ入力(\"テストの点数：\")\nreport = ユーザ入力(\"レポート評価(A,B,C)：\")\nもし score が 80 以上 かつ report が \"A\" と等しいならば\n　表示する(\"合格\")\nそうでなければ\n　表示する(\"不合格\")"
-                         },
-    "chap03/q05.json":  {
-                            "id":  "c03_q05",
-                            "title":  "問5 ループと多重分岐（3と5の倍数判定）",
-                            "description":  "1 から 20 までの数をループで回し、3と5の倍数、3の倍数、5の倍数をそれぞれ判定して表示する手順（FizzBuzz）を完成させよう。○○を適切な内容に変更してください。",
-                            "template":  "i を 1 から ○○ まで 1 ずつ増やしながら繰り返す:\n　もし iを3で割った余りが 0 と等しい ○○ iを5で割った余り が 0 と等しいならば\n　　表示する(i, \"は3と5の倍数\")\n　そうでなく もし iを3で割った余りが 0 と等しいならば\n　　表示する(i, \"は3の倍数\")\n　そうでなく もし iを5で割った余りが 0 と等しいならば\n　　表示する(i, \"は5の倍数\")\n　そうでなければ\n　　表示する(i)"
-                        },
-    "chap02/ex05.json":  {
-                             "id":  "c02_ex05",
-                             "title":  "例5 多重分岐（if〜elif〜else：成績判定）",
-                             "description":  "点数に応じてA・B・Cの3段階で判定を表示する手順です。",
-                             "template":  "score = ユーザ入力()\nもし scoreが80以上 ならば\n　表示する(\"ランク：A\")\nそうでなく もし scoreが60以上 ならば\n　表示する(\"ランク：B\")\nそうでなければ\n　表示する(\"ランク：C\")"
-                         },
-    "chap02/q07.json":  {
-                            "id":  "c02_q07",
-                            "title":  "問7 発展：自由課題",
-                            "description":  "特に指定はしないので自由にプログラムを作ってみてください。",
-                            "template":  ""
-                        },
-    "chap02/q04.json":  {
-                            "id":  "c02_q04",
-                            "title":  "問4 3の倍数の判定（if〜else）",
-                            "description":  "ユーザ入力() で整数(num)を受け取り、3で割った余りが0なら「3で割り切れますね」、そうでなければ「3で割り切れないですね」と表示されるように〇〇をうめよう。",
-                            "template":  "num = ユーザ入力(\"整数を入力\")\nもし ○○ ならば\n　表示する(\"3で割り切れますね\")\n　表示する(\"余りが出ないです\")\n○○\n　表示する(\"3で割り切れないですね\")\n　表示する(\"余りが出ますね\")\n表示する(\"判定終了\")"
-                        },
-    "chap02/q06.json":  {
-                            "id":  "c02_q06",
-                            "title":  "問6 発展：うるう年の判定",
-                            "description":  "ユーザ入力() で西暦を受け取り、変数yearに代入する。もしyearが4の倍数だったらうるう年ですと表示し、そうでなければうるう年ではありません、と表示するプログラムを一から考えてみてください。",
-                            "template":  ""
-                        },
-    "chap02/q02.json":  {
-                            "id":  "c02_q02",
-                            "title":  "問2 秒数を分と秒に換算",
-                            "description":  "ユーザ入力() で全体の秒数(total_sec)を受け取り、分(minute)と秒(sec)に換算して表示する手順を完成させよう。○○を適切な計算記号に変換してください。",
-                            "template":  "total_sec = ユーザ入力(\"秒数を入力\")\nminute = total_sec ○○ 60\nsec = total_sec ○○ 60\n表示する(minute, \"分\", sec, \"秒です\")"
-                        },
-    "chap03/q01.json":  {
-                            "id":  "c03_q01",
-                            "title":  "問1 1から10までのカウント表示",
-                            "description":  "ループカウンタ変数 i を 1 から 10 まで増やしながら、「○問目！」と表示する手順を完成させよう。",
-                            "template":  "i を 1 から 10 まで 1 ずつ増やしながら繰り返す:\n　表示する(i, \"問目！\")"
-                        },
-    "chap02/q05.json":  {
-                            "id":  "c02_q05",
-                            "title":  "問5 年齢による入場料区分（elif文）",
-                            "description":  "ユーザ入力() で年齢(age)を受け取り、大人(18歳以上)・子ども(6歳以上)・幼児に区分して料金を表示する手順を完成させよう。○○に条件を入れてください。",
-                            "template":  "age = ユーザ入力(\"年齢を入力\")\nもし ○○ ならば\n　表示する(\"区分：大人\")\n　表示する(\"料金は 1800 円です。\")\nそうでなく もし ○○ ならば\n　表示する(\"区分：子ども（小・中・高）\")\n　表示する(\"料金は 1000 円です。\")\nそうでなければ\n　表示する(\"区分：幼児\")\n　表示する(\"料金は 無料 です！\")\n表示する(\"チケットを発行しました。\")"
-                        },
-    "chap02/q01.json":  {
-                            "id":  "c02_q01",
-                            "title":  "問1 好きな食べ物の入力と表示",
-                            "description":  "ユーザ入力() で好きな食べ物を受け取り、変数 food に代入して「○○はおいしいですね！」と表示する手順を完成させよう。○○を適切な内容に変更してください。",
-                            "template":  "food = ○○\n表示する(food, \"はおいしいですね！\")"
-                        }
+    "problems/chap02/ex01.json": {
+        "id": "c02_ex01",
+        "title": "例1 名前の入力とあいさつ",
+        "category": "第2章 条件分岐",
+        "chapter": "chap02",
+        "description": "ユーザ入力() で名前を受け取り、変数 name に代入してあいさつを表示する手順です。",
+        "template": "name = ユーザ入力(\"名前を入力\")\n表示する(\"こんにちは、\", name, \"さん！\")",
+        "hint_jp": "💡 **この例題の着眼点**\n・キーボードから文字を受け取るには `ユーザ入力()` を使います。\n・受け取った文字を変数（箱）に入れるには、`変数名 = 受け取った値` の順に書きます。\n・決まった文字を表示するときと、変数の中身を表示するときの書き分け（\"\" をつけるかどうか）に注目してみましょう。",
+        "hint_py": "💡 **Pythonの着眼点**\n・日本語の `ユーザ入力()` は、Pythonでは `input()` 関数に対応します。\n・`print()` で複数の文字や変数を並べて表示するときは、カンマ `,` で区切るルールです。\n・変数名に \"\" をつけてしまうと変数ではなく文字そのものになってしまう点に気をつけましょう。"
+    },
+    "problems/chap02/ex02.json": {
+        "id": "c02_ex02",
+        "title": "例2 商と余りの計算（あめの分配）",
+        "category": "第2章 条件分岐",
+        "chapter": "chap02",
+        "description": "13個のあめを4人に均等に配るときの1人あたりの個数（商 //）と余り（余り %）を計算して表示する手順です。",
+        "template": "candy = 13\npeople = 4\nsho = candy // people\namari = candy % people\n表示する(\"1人あたり\", sho, \"個配れます\")\n表示する(\"余りは\", amari, \"個です\")",
+        "hint_jp": "💡 **この例題の着眼点**\n・コンピュータの計算では「商（整数の割り算の答え）」と「余り」を別々に計算できます。\n・商を求めるには `//`、余りを求めるには `%` という特別な記号を使います。\n・あめを均等に分けたとき「1人何個配れるか」と「何個あまるか」がそれぞれの記号に対応しています。",
+        "hint_py": "💡 **Pythonの着眼点**\n・Pythonでも商は `//`、余りは `%` をそのまま使います。\n・普段使うスラッシュ1本の割り算 `/` だと小数になってしまうため、整数の商を求めたいときは `//` を使うのがポイントです。"
+    },
+    "problems/chap02/ex03.json": {
+        "id": "c02_ex03",
+        "title": "例3 条件分岐（単一のif）",
+        "category": "第2章 条件分岐",
+        "chapter": "chap02",
+        "description": "ユーザ入力() で点数を受け取り、80点以上の場合にメッセージを表示する手順です。",
+        "template": "score = ユーザ入力()\nもし scoreが80以上ならば\n　表示する(\"素晴らしい！合格点突破です！\")\n表示する(\"判定が終了しました。\")",
+        "hint_jp": "💡 **この例題の着眼点**\n・「もし〜ならば」を使うと、条件が成立したときだけ特定の処理を行うことができます。\n・条件が当てはまったときだけ実行したい行は、先頭を字下げ（インデント）して「もしの内側」であることを表します。\n・字下げされていない行は、条件に当てはまっても当てはまらなくても必ず実行される外側の処理になります。",
+        "hint_py": "💡 **Pythonの着眼点**\n・「もし〜ならば」は Python では `if 条件:` と書きます。行末のコロン `:` を忘れないようにしましょう。\n・Pythonではインデント（半角スペース4つ）でブロックのまとまりを判断します。\n・「〜以上」を表す不等号は `>=` の順で書くのがルールです。"
+    },
+    "problems/chap02/ex04.json": {
+        "id": "c02_ex04",
+        "title": "例4 条件分岐（if〜else：偶数奇数の判定）",
+        "category": "第2章 条件分岐",
+        "chapter": "chap02",
+        "description": "入力された値が偶数なら偶数ですと表示し、奇数なら奇数ですと表示する。",
+        "template": "num = newInput(\"整数を入力\")\nもし numを2で割った余りが0 ならば\n　表示する(\"偶数ですね\")\n　表示する(\"2で割り切れますね！\")\nそうでなければ\n　表示する(\"奇数です\")\n　表示する(\"2で割り切れませんね！\")\n表示する(\"判定終了\")",
+        "hint_jp": "💡 **この例題の着眼点**\n・「もし〜ならば」と「そうでなければ」を組み合わせると、「条件を満たす場合」と「それ以外の場合」の2択に分岐できます。\n・ある数が偶数かどうかは、「2で割った余りが0かどうか」で判定できます。\n・「そうでなければ」は条件に当てはまらなかった残りすべてを指すため、条件を書く必要がありません。",
+        "hint_py": "💡 **Pythonの着眼点**\n・「もし」は `if 条件:`、「そうでなければ」は `else:` に対応します。\n・`else:` には条件式を書かない点に注意しましょう（コロン `:` だけを付けます）。\n・「等しい」を比べる比較演算子は `=`（代入）ではなく `==`（等号）を使います。"
+    },
+    "problems/chap02/ex05.json": {
+        "id": "c02_ex05",
+        "title": "例5 多重分岐（if〜elif〜else：成績判定）",
+        "category": "第2章 条件分岐",
+        "chapter": "chap02",
+        "description": "点数に応じてA・B・Cの3段階で判定を表示する手順です。",
+        "template": "score = ユーザ入力()\nもし scoreが80以上 ならば\n　表示する(\"ランク：A\")\nそうでなく もし scoreが60以上 ならば\n　表示する(\"ランク：B\")\nそうでなければ\n　表示する(\"ランク：C\")",
+        "hint_jp": "💡 **この例題の着眼点**\n・3つ以上の選択肢に分けるときは「もし」「そうでなく もし」「そうでなければ」と繋げます。\n・コンピュータは条件を上から順番に判定し、最初に当てはまったものだけを実行します。\n・上の条件から外れたものが次の「そうでなく もし」に進むため、順番の並べ方が大切です。",
+        "hint_py": "💡 **Pythonの着眼点**\n・2つ目以降の「そうでなく もし」は `elif`（else if の略）を使います。\n・全体の構造は `if` → `elif` → `else` の順になります。\n・それぞれの分岐の行末にコロン `:` があるか、中の処理がインデントされているか確認しましょう。"
+    },
+    "problems/chap02/q01.json": {
+        "id": "c02_q01",
+        "title": "問1 好きな食べ物の入力と表示",
+        "category": "第2章 条件分岐",
+        "chapter": "chap02",
+        "description": "ユーザ入力() で好きな食べ物を受け取り、変数 food に代入して「○○はおいしいですね！」と表示する手順を完成させよう。○○を適切な内容に変更してください。",
+        "template": "food = ○○\n表示する(food, \"はおいしいですね！\")",
+        "hint_jp": "💡 **例1（名前の入力）を見直してみよう！**\n・例1では、キーボードから文字を受け取るためにどの命令を使っていたか見直してみましょう。\n・直接食べ物の名前を変数に代入してしまうと、実行するたびに毎回違う食べ物を入力できなくなってしまいます。\n・画面から自由に入力してもらうには、右辺にどの命令を呼べばよいか考えてみましょう。",
+        "hint_py": "💡 **例1のPythonコードと比べよう！**\n・Pythonでキーボードからの入力を受け取る関数は何だったか、例1のコードを思い出してみましょう。\n・受け取った値を変数 `food` に代入する形を作ります。\n・`print()` の中で変数 `food` を表示するとき、\"\" をつけるとどうなるかも意識してみましょう。"
+    },
+    "problems/chap02/q02.json": {
+        "id": "c02_q02",
+        "title": "問2 秒数を分と秒に換算",
+        "category": "第2章 条件分岐",
+        "chapter": "chap02",
+        "description": "ユーザ入力() で全体の秒数(total_sec)を受け取り、分(minute)と秒(sec)に換算して表示する手順を完成させよう。○○を適切な計算記号に変換してください。",
+        "template": "total_sec = ユーザ入力(\"秒数を入力\")\nminute = total_sec ○○ 60\nsec = total_sec ○○ 60\n表示する(minute, \"分\", sec, \"秒です\")",
+        "hint_jp": "💡 **例2（商と余り）を見直してみよう！**\n・1分は60秒です。例えば130秒の場合、「60で割ったときの商（何分取れるか）」と「60で割ったときの余り（何秒残るか）」に分解できます。\n・例2で学習した2つの計算記号のうち、どちらが「商」で、どちらが「余り」を求める記号だったか思い出してみましょう。",
+        "hint_py": "💡 **例2のPythonコードと比べよう！**\n・Pythonでも、整数の商を求める演算子と余りを求める演算子は日本語疑似コードと同じ記号を使います。\n・小数点がつかない「整数の商」を求めるにはスラッシュ1本 `/` と2本 `//` のどちらを使うべきか、例2を振り返ってみましょう。"
+    },
+    "problems/chap02/q03.json": {
+        "id": "c02_q03",
+        "title": "問3 気温による警告表示（if文）",
+        "category": "第2章 条件分岐",
+        "chapter": "chap02",
+        "description": "ユーザ入力() で気温(temp)を受け取り、30度以上のときに「熱中症に気をつけて！」と警告を表示する手順を完成させよう。○○に条件を入れてください。",
+        "template": "temp = ユーザ入力(\"気温を入力\")\nもし ○○ ならば\n　表示する(\"熱中症に気をつけて！\")\n表示する(\"計測完了\")",
+        "hint_jp": "💡 **例3（条件分岐）を見直してみよう！**\n・条件を考えるときは、「誰が（どの変数）」「どの値と比べてどうなのか」を意識することが大切です。\n・単に「30以上」と書くのではなく、主語となる変数を忘れないように注意して条件を組み立ててみましょう。",
+        "hint_py": "💡 **例3のPythonコードと比べよう！**\n・Pythonの `if` 文では、比較演算子を使って「変数」と「数値」を比べます。\n・「以上」を表す不等号の記号（`>` と `=` の並び順）や、行末に付ける記号を例3で確認してみましょう。\n・if の条件が成立したときに実行される行が、正しくインデントされているかもチェックしましょう。"
+    },
+    "problems/chap02/q04.json": {
+        "id": "c02_q04",
+        "title": "問4 3の倍数の判定（if〜else）",
+        "category": "第2章 条件分岐",
+        "chapter": "chap02",
+        "description": "ユーザ入力() で整数(num)を受け取り、3で割った余りが0なら「3で割り切れますね」、そうでなければ「3で割り切れないですね」と表示されるように〇〇をうめよう。",
+        "template": "num = ユーザ入力(\"整数を入力\")\nもし ○○ ならば\n　表示する(\"3で割り切れますね\")\n　表示する(\"余りが出ないです\")\n○○\n　表示する(\"3で割り切れないですね\")\n　表示する(\"余りが出ますね\")\n表示する(\"判定終了\")",
+        "hint_jp": "💡 **例4（偶数奇数の判定）を見直してみよう！**\n・ある数が「3の倍数」であるとは、その数を3で割ったときの「余り」がいくつになると言えるでしょうか？\n・「もし」の条件式にはその余りに関する判定を入れます。例4の「偶数の判定条件」を参考に組み立ててみましょう。\n・条件に当てはまらなかった場合の分岐（2択のもう一方）を表す言葉を思い出してみましょう。",
+        "hint_py": "💡 **例4のPythonコードと比べよう！**\n・余りを求める記号（`%`）と、値が等しいかを判定する演算子を組み合わせて `if` の条件を作ります。\n・等しい判定の記号（`=` が何個必要か）に注意しましょう。\n・もう一方の分岐（そうでなければ）に対応するPythonのキーワードと、その行末の記号を例4で確認してみましょう。"
+    },
+    "problems/chap02/q05.json": {
+        "id": "c02_q05",
+        "title": "問5 年齢による入場料区分（elif文）",
+        "category": "第2章 条件分岐",
+        "chapter": "chap02",
+        "description": "ユーザ入力() で年齢(age)を受け取り、大人(18歳以上)・子ども(6歳以上)・幼児に区分して料金を表示する手順を完成させよう。○○に条件を入れてください。",
+        "template": "age = ユーザ入力(\"年齢を入力\")\nもし ○○ ならば\n　表示する(\"区分：大人\")\n　表示する(\"料金は 1800 円です。\")\nそうでなく もし ○○ ならば\n　表示する(\"区分：子ども（小・中・高）\")\n　表示する(\"料金は 1000 円です。\")\nそうでなければ\n　表示する(\"区分：幼児\")\n　表示する(\"料金は 無料 です！\")\n表示する(\"チケットを発行しました。\")",
+        "hint_jp": "💡 **例5（成績判定の多重分岐）を見直してみよう！**\n・1つ目の分岐では、大人の条件（何歳以上か）を主語 `age` を使って表してみましょう。\n・例5で学んだ「多重分岐のキーワード」を思い出してみましょう。2番目の分岐と最後の分岐で使う言葉の違いに注目してみましょう。\n・上から順に判定されるため、2番目の条件に来た人はすでに1つ目の条件から外れているという仕組みを意識してみましょう。",
+        "hint_py": "💡 **例5のPythonコードと比べよう！**\n・Pythonで多重分岐を作るとき、1つ目・2つ目・最後の分岐でそれぞれ使われるキーワード（`if`, `elif`, `else`）の使い分けを確認しましょう。\n・それぞれの分岐の行末にコロン `:` が付いているか、条件式の不等号の向きが正しいかを確認してみましょう。"
+    },
+    "problems/chap02/q06.json": {
+        "id": "c02_q06",
+        "title": "問6 発展：うるう年の判定",
+        "category": "第2章 条件分岐",
+        "chapter": "chap02",
+        "description": "ユーザ入力() で西暦を受け取り、変数yearに代入する。もしyearが4の倍数だったらうるう年ですと表示し、そうでなければうるう年ではありません、と表示するプログラムを一から考えてみてください。",
+        "template": "",
+        "hint_jp": "💡 **繰り返しの重要ポイント（無限ループの防止）**\n・もしループの中で `sec` の値を変えないと、ずっと条件を満たし続けて処理が終わらなくなってしまいます。\n・毎回の繰り返しで「秒数を1つ進める」には、現在の `sec` の値を使ってどのように更新すればよいか考えてみましょう。",
+        "hint_py": "💡 **Pythonコードの書き方**\n・変数の値を1増やす計算は、代入の右辺で今の変数に1を足す式を書くか、加算代入の省略記法を使います。\n・`while` の条件式や行末のコロン、ループの中で繰り返す処理のインデント（字下げ）が揃っているか確認しましょう。"
+    },
+    "problems/chap02/q07.json": {
+        "id": "c02_q07",
+        "title": "問7 発展：自由課題",
+        "category": "第2章 条件分岐",
+        "chapter": "chap02",
+        "description": "特に指定はしないので自由にプログラムを作ってみてください。",
+        "template": "",
+        "hint_jp": "💡 **計算の順序と変数の活用**\n・3科目の合計点（`goukei`）を求めるには、入力された3つの変数をどう組み合わせればよいでしょうか？\n・平均点（`heikin`）を求めるには、すでに求めた合計の変数と科目数（3科目）を使ってどのような計算式を立てればよいか考えてみましょう。",
+        "hint_py": "💡 **Pythonの割り算記号に注意！**\n・平均の計算では割り切れない場合もあるため、小数の結果をそのまま出せる割り算演算子を使います。\n・整数の商を求める `//` と、小数の結果を出す `/` のどちらが平均の計算に適しているか思い出してみましょう。"
+    },
+    "problems/chap03/ex01.json": {
+        "id": "c03_ex01",
+        "title": "例1 決まった回数の繰り返し",
+        "category": "第3章 反復処理",
+        "chapter": "chap03",
+        "description": "ループカウンタ変数 i を使って、1 から 5 までの決まった回数の処理を繰り返す手順です。",
+        "template": "i を 1 から 5 まで 1 ずつ増やしながら繰り返す:\n　表示する(\"こんにちは！\")\n　表示する(\"いま\", i, \"回目のループです\")\n表示する(\"終了しました\")",
+        "hint_jp": "💡 **この例題の着眼点**\n・決まった回数だけ処理を繰り返すときは「〜から〜まで〜ずつ増やしながら繰り返す」という構文を使います。\n・変数 `i` は「今何回目の繰り返しなのか」を数えるカウンタの役割をしています。\n・繰り返したい命令は、先頭を字下げ（インデント）してループの内側に配置します。",
+        "hint_py": "💡 **Pythonの着眼点**\n・決まった回数の繰り返しは `for 変数 in range(開始, 終了, 増分):` を使います。\n・`range()` の2番目に指定する「終了値」は、**その値の手前まで**進むというPythonの仕組みに注目しましょう（例：5まで動かしたいときは終了値に6を指定します）。\n・行末のコロン `:` と、繰り返す行のインデントを忘れずに確認しましょう。"
+    },
+    "problems/chap03/ex02.json": {
+        "id": "c03_ex02",
+        "title": "例2 1から10までの総和（累計計算）",
+        "category": "第3章 反復処理",
+        "chapter": "chap03",
+        "description": "変数 total に 1 から 10 までの数を順番に足し合わせていき、合計を求める手順です。",
+        "template": "total = 0\ni を 1 から 10 まで 1 ずつ増やしながら繰り返す:\n　total = total + i\n　表示する(i, \"を足しました。現在の合計:\", total)\n表示する(\"最終的な合計は\", total, \"です！\")",
+        "hint_jp": "💡 **この例題の着眼点**\n・合計をためていく変数（ここでは `total`）は、繰り返しの前に `0` で初期化しておきます。\n・ループの中で `total = total + i` のように「今の合計に新しい値を足して入れ直す」ことで、1つずつ累計していきます。\n・最後の結果表示は、ループの外側（字下げなし）に置くことで、すべて足し終わったあとに1回だけ表示されます。",
+        "hint_py": "💡 **Pythonの着眼点**\n・ループの中で合計を足し込んでいく仕組み（累計）の書き方に注目しましょう。\n・最後の `print()` がインデントされていない理由（ループの中と外の違い）を意識してみましょう。"
+    },
+    "problems/chap03/ex03.json": {
+        "id": "c03_ex03",
+        "title": "例3 条件繰り返し（入力累積加算）",
+        "category": "第3章 反復処理",
+        "chapter": "chap03",
+        "description": "変数 num が 20 より小さい間、ユーザ入力() で数を足し続けていき、20 を超えたら終了する手順です。",
+        "template": "num = 0\nnum が 20 より小さい間 繰り返す\n　x = ユーザ入力(\"1から5までの数を入力：\")\n　num = num+x\n表示する(num,\"になりました。20を超えました\")",
+        "hint_jp": "💡 **この例題の着眼点**\n・「〜の間 繰り返す」を使うと、回数が決まっていない繰り返し（条件が満たされている間ずっと続ける）を作ることができます。\n・繰り返しのたびにキーボードから値を受け取り、それを変数 `num` に足し込んで増やしていきます。\n・条件が成り立たなくなった時点でループが終了し、次の行へと進みます。",
+        "hint_py": "💡 **Pythonの着眼点**\n・「〜の間 繰り返す」は Python では `while 条件:` を使います。\n・条件が成り立っている間はずっとループ内の処理が実行され、条件から外れると自動的にループを抜けます。\n・`while` の行末のコロン `:` や、繰り返す処理のインデントを確認しましょう。"
+    },
+    "problems/chap03/ex04.json": {
+        "id": "c03_ex04",
+        "title": "例4 複合条件（かつ）",
+        "category": "第3章 反復処理",
+        "chapter": "chap03",
+        "description": "テストの点数(score)とレポート評価(report)を受け取り、点数が80以上かつ評価が「A」の場合に「合格」、それ以外は「不合格」と表示する手順です。",
+        "template": "score = ユーザ入力(\"テストの点数：\")\nreport = ユーザ入力(\"レポート評価(A,B,C)：\")\nもし score が 80 以上 かつ report が \"A\" と等しいならば\n　表示する(\"合格\")\nそうでなければ\n　表示する(\"不合格\")",
+        "hint_jp": "💡 **この例題の着眼点**\n・「A かつ B」を使うと、2つの条件を**両方とも満たしているときだけ**実行する分岐を作れます。\n・それぞれの条件には、必ず「誰と何を比べるか（主語と述語）」をきちんと書く必要があります。\n・文字同士を比べるときは、文字を \"\" で囲んで変数と区別します。",
+        "hint_py": "💡 **Pythonの着眼点**\n・「かつ」は Python では `and` というキーワードで2つの条件を繋ぎます。\n・2つの条件のそれぞれに比較演算子（`>=` や `==` など）を正しく書く必要があります。\n・文字との比較では `== \"A\"` のようにクォーテーションを忘れないようにしましょう。"
+    },
+    "problems/chap03/ex05.json": {
+        "id": "c03_ex05",
+        "title": "例5 ループと分岐（偶数・奇数の判定）",
+        "category": "第3章 反復処理",
+        "chapter": "chap03",
+        "description": "1 から 15 までの数をループで回し、各数が偶数か奇数かを判定して表示する手順です。",
+        "template": "i を 1 から 15 まで 1 ずつ増やしながら繰り返す:\n　もし i % 2 が 0 と等しいならば\n　　表示する(i, \"は偶数です\")\n　そうでなければ\n　　表示する(i, \"は奇数です\")",
+        "hint_jp": "💡 **この例題の着眼点**\n・繰り返しのブロックの中に条件分岐（もし〜そうでなければ）を入れる「入れ子（ネスト）」の構造です。\n・ループが進むたびに変数 `i` の値が変化し、その都度偶数か奇数かが判定されます。\n・字下げが2段階（ループの中の分岐、さらにその中の処理）になる階層関係に注目してみましょう。",
+        "hint_py": "💡 **Pythonの着眼点**\n・`for` の内側に `if 〜 else:` を書くため、インデントが深くなります（4スペース、8スペース）。\n・インデントのズレは構文エラー（IndentationError）や意図しない動作の原因になるので、階層を綺麗に揃えましょう。"
+    },
+    "problems/chap03/q01.json": {
+        "id": "c03_q01",
+        "title": "問1 1から10までのカウント表示",
+        "category": "第3章 反復処理",
+        "chapter": "chap03",
+        "description": "ループカウンタ変数 i を 1 から 10 まで増やしながら、「○問目！」と表示する手順を完成させよう。",
+        "template": "i を 1 から 10 まで 1 ずつ増やしながら繰り返す:\n　表示する(○○, \"問目！\")",
+        "hint_jp": "💡 **例1（決まった回数の繰り返し）を見直してみよう！**\n・ループの中で「今何回目の繰り返しなのか」を数えている変数はどれでしょうか？\n・1行目で指定した繰り返し用の変数を表示命令の中に指定することで、1問目、2問目…と順番に数字が変わって表示されます。",
+        "hint_py": "💡 **例1のPythonコードと比べよう！**\n・1から10まで繰り返したいとき、`range(start, stop, step)` の「終了値（stop）」にはどの数値を指定すればよいか、例1の仕組みを思い出してみましょう。\n・ループの中で変化していくカウンタ変数を `print()` の中に渡してあげましょう。"
+    },
+    "problems/chap03/q02.json": {
+        "id": "c03_q02",
+        "title": "問2 二乗の総和（1から5まで）",
+        "category": "第3章 反復処理",
+        "chapter": "chap03",
+        "description": "1 から 5 までの数の二乗を足し合わせ、その合計(total)を表示する手順を完成させよう。1*1+2*2+3*3+4*4+5*5の合計を計算します。答えは55になります。",
+        "template": "total = 0\ni を 1 から 5 まで 1 ずつ増やしながら繰り返す:\n　nijou = i*i\n　total = total + ○○\n表示する(\"合計は\", total, \"です！\")",
+        "hint_jp": "💡 **例2（総和の累計計算）を見直してみよう！**\n・例2では変数 `i` そのものを合計に足していましたが、今回の問題で足し合わせたいものは何でしょうか？\n・直前の行で計算された結果が入っている変数はどれか、確認して足し込んでみましょう。\n・最後の表示命令がループの外側（字下げなし）に置かれている理由も意識してみましょう。",
+        "hint_py": "💡 **例2のPythonコードと比べよう！**\n・1から5まで繰り返すための `range()` の指定方法を例2で確認してみましょう。\n・計算した二乗の値を `total` に加算代入していく書き方と、ループを抜けた後に結果を一度だけ表示するためのインデント位置に注目してみましょう。"
+    },
+    "problems/chap03/q03.json": {
+        "id": "c03_q03",
+        "title": "問3 条件繰り返し（入力累積減算）",
+        "category": "第3章 反復処理",
+        "chapter": "chap03",
+        "description": "変数 num が 0 より大きい間、ユーザ入力() で数を引き続けていき、0 より小さくなったら終了する手順を完成させよう。○○に条件を入れてください。",
+        "template": "num = 20\nnum が ○○間 繰り返す\n　x = ユーザ入力(\"1から5までの数を入力：\")\n　num = num-x\n表示する(num,\"になりました。0より小さくなりました\")",
+        "hint_jp": "💡 **例3（入力累積加算）を見直してみよう！**\n・例3では「20より小さい間」繰り返していました。問3では「0より小さくなったら終了」させたいです。\n・「〜の間 繰り返す」には、終了する条件ではなく**繰り返したい間の条件（まだ続いている状態）**を書くのがポイントです。0と比べてどういう状態の間繰り返せばよいか考えてみましょう。",
+        "hint_py": "💡 **例3のPythonコードと比べよう！**\n・Pythonの `while` にも、「繰り返している間成り立つべき条件」を指定します。\n・変数が0より大きいことを表す比較記号の向きや、行末のコロン `:`、ループ処理のインデントを確認してみましょう。"
+    },
+    "problems/chap03/q04.json": {
+        "id": "c03_q04",
+        "title": "問4 複合条件（または）",
+        "category": "第3章 反復処理",
+        "chapter": "chap03",
+        "description": "購入金額(price)と会員ランク(rank)を受け取り、金額が5000以上またはランクが\"A\"の場合に「送料無料」、それ以外は「送料500円」と表示する手順を完成させよう。○○を適切な内容に変更してください。",
+        "template": "price = ユーザ入力(\"購入金額：\")\nrank = ユーザ入力(\"会員ランク（A, B）：\")\nもし price が ○○ 以上 ○○ rank が ○○ と等しいならば\n　表示する(\"送料無料\")\nそうでなければ\n　表示する(\"送料500円\")",
+        "hint_jp": "💡 **例4（複合条件・かつ）を見直してみよう！**\n・例4は両方を満たす「かつ」でしたが、今回は「どちらか一方でも満たせばよい」という条件です。このときに使う接続語は何だったか思い出してみましょう。\n・問題文にある「金額の基準数値」や「ランクの文字」をそれぞれの条件に当てはめてみましょう。文字には \"\" が必要かどうかも意識してみましょう。",
+        "hint_py": "💡 **例4のPythonコードと比べよう！**\n・Pythonで「または」を意味するキーワードは何だったか確認してみましょう（例4の `and` と対比してみましょう）。\n・2つの条件式それぞれにおいて、比較演算子（`>=` や `==`）と値（数値か文字列か）の書き方に注意して組み立ててみましょう。"
+    },
+    "problems/chap03/q05.json": {
+        "id": "c03_q05",
+        "title": "問5 ループと多重分岐（3と5の倍数判定）",
+        "category": "第3章 反復処理",
+        "chapter": "chap03",
+        "description": "1 から 20 までの数をループで回し、3と5の倍数、3の倍数、5の倍数をそれぞれ判定して表示する手順を完成させよう。○○を適切な内容に変更してください。",
+        "template": "i を 1 から ○○ まで 1 ずつ増やしながら繰り返す:\n　もし iを3で割った余りが 0 と等しい ○○ iを5で割った余り が 0 と等しいならば\n　　表示する(i, \"は3と5の倍数\")\n　そうでなく もし iを3で割った余りが 0 と等しいならば\n　　表示する(i, \"は3の倍数\")\n　そうでなく もし iを5で割った余りが 0 と等しいならば\n　　表示する(i, \"は5の倍数\")\n　そうでなければ\n　　表示する(i)",
+        "hint_jp": "💡 **例5（ループと分岐）を見直してみよう！**\n・1行目の繰り返しは、問題文にある「1から何まで回すか」を確認して上限の数値を入れましょう。\n・2行目では「3の倍数」と「5の倍数」の両方を同時に満たす数を判定しています。2つの条件を両方満たすときに使う接続の言葉は何でしょうか？\n・なぜ「3と5の両方の倍数」を一番最初に判定する必要があるのか、判定の順番の理由も考えてみましょう。",
+        "hint_py": "💡 **例5のPythonコードと比べよう！**\n・1から20まで繰り返すとき、`range()` の終了値には何を指定すべきか（指定した値の1つ手前まで進むルール）を確認しましょう。\n・「かつ」を意味するPythonキーワードを使って複合条件を作り、多重分岐（`if` → `elif` → `else`）を構成してみましょう。\n・ループと分岐が重なるため、半角スペースの字下げ（インデント）を階層ごとに正確に揃えましょう。"
+    },
+    "problems/chap03/q06.json": {
+        "id": "c03_q06",
+        "title": "問6 ループと条件分岐によるカウント（3の倍数の個数）",
+        "category": "第3章 反復処理",
+        "chapter": "chap03",
+        "description": "1 から 20 までの数をループで回し、3の倍数を見つけるたびにカウンタ変数(count)を1増やして、最終的に3の倍数が何個あったかを表示する手順を完成させよう。○○を適切な内容に変更してください。",
+        "template": "count = ○○\ni を 1 から 20 まで 1 ずつ増やしながら繰り返す\n　もし iを3で割った余りが0 と等しいならば\n　　表示する(i, \"は3の倍数です\")\n　　count = ○○ + ○○\n表示する(\"1から20の中に3の倍数は\", count, \"個ありました\")",
+        "hint_jp": "💡 **この問題の着眼点**\n・個数を数える変数（カウンタ変数 `count`）は、繰り返しを始める前に初期値としていくつにしておくべきか考えてみましょう。\n・3の倍数が見つかるたびに、現在の `count` の値にいくつ足して更新すれば「個数が1つ増えた」ことになるか式を組み立ててみましょう。\n・最後の表示命令がループの外側（字下げなし）に置かれている理由（すべて数え終わった後に1回だけ結果を表示する）も意識してみましょう。",
+        "hint_py": "💡 **Pythonの着眼点**\n・Pythonでも、カウンタ変数を1増やすときは `count = count + 1` のように現在の変数に1を足して代入し直します（または加算代入 `count += 1`）。\n・`for i in range(1, 21, 1):` や `if i % 3 == 0:` の行末のコロン `:`、そして2段階に深くなるインデント（半角スペース4つ・8つ）の階層が正しく揃っているか確認しましょう。"
+    },
+    "problems/chap03/q07.json": {
+        "id": "c03_q07",
+        "title": "問7 発展：条件繰り返し（貯金目標の達成）",
+        "category": "第3章 反復処理",
+        "chapter": "chap03",
+        "description": "【発展問題：一からプログラムを作成しよう】\n貯金額を変数 tyokin として最初は 0 円からスタートします。\n目標の 1000 円に達するまで（tyokin が 1000 より小さい間）、以下の処理を繰り返すプログラムを一から作ってみましょう。\n① ユーザ入力() で貯金する金額を受け取り、変数 money に代入する\n② tyokin に money を足して貯金額を更新する\n③ 現在の貯金額を表示する\n目標金額（1000円）に達して繰り返しが終わったら、最後に「目標達成！」と最終貯金額を表示させましょう。",
+        "template": "",
+        "hint_jp": "💡 **プログラムの組み立て手順（例3をお手本にしよう！）**\n・**① 最初の準備**：貯金を始める前、変数 `tyokin` の初期値をいくつからスタートすべきか先頭に書きましょう。\n・**② 繰り返しの条件**：「〜の間 繰り返す」には、目標に達するまでの状態（1000より小さい状態）を条件に指定します。\n・**③ ループの中身（字下げ）**：入力の受け取り、金額の加算、現在の金額表示の3行を、全角スペースで字下げして並べます。\n・**④ 終了後の表示（字下げなし）**：目標達成メッセージは字下げを解除して一番下に書くことで、ループがすべて終わった後に1回だけ実行されます。",
+        "hint_py": "💡 **Pythonコードの着眼点**\n・「〜の間 繰り返す」は `while 条件:` に対応します。行末のコロン `:` を忘れないようにしましょう。\n・ループの中で実行する処理は、半角スペース4つでインデント（字下げ）を綺麗に揃えます。\n・最後の目標達成の `print()` は、インデントを左端に戻して（字下げなしで）書くのがポイントです。"
+    }
 };
 
 // ===================================================
@@ -436,6 +554,16 @@ function cacheDomElements() {
     dom.btnCopyPy = document.getElementById('btn-copy-py');
     dom.btnRun = document.getElementById('btn-run');
     dom.consoleOutput = document.getElementById('console-output');
+
+    // ヒント関連DOM要素
+    dom.hintJpContainer = document.getElementById('hint-jp-container');
+    dom.btnHintJp = document.getElementById('btn-hint-jp');
+    dom.hintJpBox = document.getElementById('hint-jp-box');
+    dom.hintJpText = document.getElementById('hint-jp-text');
+    dom.hintPyContainer = document.getElementById('hint-py-container');
+    dom.btnHintPy = document.getElementById('btn-hint-py');
+    dom.hintPyBox = document.getElementById('hint-py-box');
+    dom.hintPyText = document.getElementById('hint-py-text');
 }
 
 // ===================================================
@@ -476,7 +604,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadProblemsIndex() {
     let data = null;
     try {
-        const res = await fetch('./problems/index.json');
+        const res = await fetch(`./problems/index.json?t=${Date.now()}`);
         if (res.ok) {
             data = await res.json();
         }
@@ -603,7 +731,7 @@ async function selectProblem(problemId) {
 
     let problemData = null;
     try {
-        const res = await fetch(`./problems/${meta.file}`);
+        const res = await fetch(`./problems/${meta.file}?t=${Date.now()}`);
         if (res.ok) {
             problemData = await res.json();
         }
@@ -611,7 +739,14 @@ async function selectProblem(problemId) {
         // file:// 直開き時はフォールバック辞書から取得
     }
     if (!problemData && FALLBACK_PROBLEM_FILES[meta.file]) {
-        problemData = FALLBACK_PROBLEM_FILES[meta.file];
+        problemData = { ...FALLBACK_PROBLEM_FILES[meta.file] };
+    }
+
+    // fetchされたJSONにhint_jp/hint_pyが欠落している場合（古いキャッシュ等）、内蔵フォールバックから確実にマージ
+    if (problemData && FALLBACK_PROBLEM_FILES[meta.file]) {
+        const fb = FALLBACK_PROBLEM_FILES[meta.file];
+        if (!problemData.hint_jp && fb.hint_jp) problemData.hint_jp = fb.hint_jp;
+        if (!problemData.hint_py && fb.hint_py) problemData.hint_py = fb.hint_py;
     }
 
     if (!problemData) {
@@ -622,6 +757,9 @@ async function selectProblem(problemId) {
     state.currentProblemData = problemData;
 
     dom.problemDesc.textContent = problemData.description || '';
+
+    // ヒントの反映と初期化（問題切り替え時は一旦折りたたむ）
+    updateProblemHints(problemData);
 
     // 日本語コードの復元
     const savedJp = getSavedJpCode(problemId);
@@ -748,6 +886,127 @@ function initEditors() {
         dom.btnCopyPy.addEventListener('click', () => {
             copyToClipboard(dom.pyEditor.value, dom.btnCopyPy, '📋 コピー');
         });
+    }
+
+    // ヒントアコーディオンの開閉イベント初期化
+    initHintToggles();
+}
+
+/**
+ * ヒントテキスト内のMarkdown簡易装飾（**太字** と `コード`）を安全にHTML変換
+ */
+function formatHintContent(text) {
+    if (!text) return '';
+    const escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    return escaped
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+/**
+ * ヒント表示トグル（グローバル公開・HTMLのonclick属性およびJSの両方から安全に呼び出し可能）
+ */
+window.toggleWorkspaceHint = function(type) {
+    const isJp = (type === 'jp');
+    const box = document.getElementById(isJp ? 'hint-jp-box' : 'hint-py-box');
+    const btn = document.getElementById(isJp ? 'btn-hint-jp' : 'btn-hint-py');
+    if (!box || !btn) return;
+
+    const isHidden = box.classList.contains('hidden') || box.style.display === 'none';
+    if (isHidden) {
+        box.classList.remove('hidden');
+        box.style.display = 'block';
+        btn.setAttribute('aria-expanded', 'true');
+    } else {
+        box.classList.add('hidden');
+        box.style.display = 'none';
+        btn.setAttribute('aria-expanded', 'false');
+    }
+};
+
+/**
+ * 選択中の問題に応じたヒント内容をDOMに反映
+ */
+function updateProblemHints(problemData) {
+    const hintJp = (problemData && problemData.hint_jp) ? problemData.hint_jp.trim() : '';
+    const hintPy = (problemData && problemData.hint_py) ? problemData.hint_py.trim() : '';
+
+    const jpContainer = document.getElementById('hint-jp-container') || (dom.btnHintJp && dom.btnHintJp.parentElement);
+    const jpBox = document.getElementById('hint-jp-box');
+    const jpText = document.getElementById('hint-jp-text');
+    const jpBtn = document.getElementById('btn-hint-jp');
+
+    if (jpText) {
+        jpText.innerHTML = formatHintContent(hintJp);
+    }
+    if (jpContainer) {
+        if (hintJp) {
+            jpContainer.classList.remove('hidden');
+            jpContainer.style.display = '';
+        } else {
+            jpContainer.classList.add('hidden');
+            jpContainer.style.display = 'none';
+        }
+        if (jpContainer.tagName === 'DETAILS') {
+            jpContainer.open = false;
+        }
+    }
+    if (jpBox && (!jpContainer || jpContainer.tagName !== 'DETAILS')) {
+        jpBox.classList.add('hidden');
+        jpBox.style.display = 'none';
+    }
+    if (jpBtn) {
+        jpBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    const pyContainer = document.getElementById('hint-py-container') || (dom.btnHintPy && dom.btnHintPy.parentElement);
+    const pyBox = document.getElementById('hint-py-box');
+    const pyText = document.getElementById('hint-py-text');
+    const pyBtn = document.getElementById('btn-hint-py');
+
+    if (pyText) {
+        pyText.innerHTML = formatHintContent(hintPy);
+    }
+    if (pyContainer) {
+        if (hintPy) {
+            pyContainer.classList.remove('hidden');
+            pyContainer.style.display = '';
+        } else {
+            pyContainer.classList.add('hidden');
+            pyContainer.style.display = 'none';
+        }
+        if (pyContainer.tagName === 'DETAILS') {
+            pyContainer.open = false;
+        }
+    }
+    if (pyBox && (!pyContainer || pyContainer.tagName !== 'DETAILS')) {
+        pyBox.classList.add('hidden');
+        pyBox.style.display = 'none';
+    }
+    if (pyBtn) {
+        pyBtn.setAttribute('aria-expanded', 'false');
+    }
+}
+
+/**
+ * ヒントアコーディオンボタンのクリックハンドラ初期化
+ */
+function initHintToggles() {
+    const jpBtn = document.getElementById('btn-hint-jp');
+    const pyBtn = document.getElementById('btn-hint-py');
+    if (jpBtn && jpBtn.tagName !== 'SUMMARY') {
+        jpBtn.onclick = function() {
+            window.toggleWorkspaceHint('jp');
+        };
+    }
+    if (pyBtn && pyBtn.tagName !== 'SUMMARY') {
+        pyBtn.onclick = function() {
+            window.toggleWorkspaceHint('py');
+        };
     }
 }
 

@@ -7,10 +7,103 @@
     <!-- 共通スタイルシート（rules.md準拠） -->
     <link rel="stylesheet" href="../css/common.css">
     <!-- ワークスペース固有スタイルシート -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20261107_3">
     <!-- アプリケーションスクリプト（外部通信不要・ブラウザ完結） -->
     <script src="js/pyodide-handler.js" defer></script>
-    <script src="js/app.js" defer></script>
+    <script src="js/app.js?v=20261107_3" defer></script>
+    <style>
+        /* ヒント表示アコーディオン（キャッシュ影響を受けないインライン保証スタイル） */
+        .hint-container {
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .btn-hint-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+            text-align: left;
+            user-select: none;
+            list-style: none;
+            font-family: inherit;
+        }
+        .hint-toggle-left {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+        .hint-icon {
+            font-size: 0.95rem;
+            line-height: 1;
+        }
+        .hint-chevron {
+            font-size: 0.72rem;
+            transition: transform 0.2s ease;
+            color: currentColor;
+            opacity: 0.75;
+        }
+        .btn-hint-toggle[aria-expanded="true"] .hint-chevron {
+            transform: rotate(180deg);
+        }
+        .hint-container-jp .btn-hint-toggle {
+            background-color: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+        }
+        .hint-container-jp .btn-hint-toggle:hover {
+            background-color: #fef3c7;
+            border-color: #fcd34d;
+        }
+        .hint-container-jp .hint-box {
+            background-color: #fffdf5;
+            border: 1px solid #fde68a;
+            color: #78350f;
+        }
+        .hint-container-py .btn-hint-toggle {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            color: #0369a1;
+        }
+        .hint-container-py .btn-hint-toggle:hover {
+            background-color: #e0f2fe;
+            border-color: #7dd3fc;
+        }
+        .hint-container-py .hint-box {
+            background-color: #f8fafc;
+            border: 1px solid #bae6fd;
+            color: #0f172a;
+        }
+        .hint-box {
+            margin-top: 0.35rem;
+            padding: 0.65rem 0.85rem;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .hint-text {
+            white-space: pre-wrap;
+            font-size: 0.83rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .hint-text strong {
+            color: inherit;
+            font-weight: 700;
+        }
+        .hint-text code {
+            background: rgba(0, 0, 0, 0.06);
+            padding: 0.1rem 0.35rem;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, "Courier New", monospace;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
 <body>
 
@@ -70,6 +163,23 @@
 
                 <div class="problem-info-card">
                     <p id="problem-desc" class="problem-desc">問題データを読み込んでいます...</p>
+                </div>
+
+                <!-- 日本語コードの考え方・例題対応ヒント -->
+                <div id="hint-jp-container" class="hint-container hint-container-jp">
+                    <button type="button" id="btn-hint-jp" class="btn-hint-toggle" aria-expanded="false" onclick="window.toggleWorkspaceHint('jp')" title="日本語コードのヒントを表示/非表示">
+                        <span class="hint-toggle-left">
+                            <span class="hint-icon">💡</span>
+                            <span class="hint-title">考え方のヒント（例題との対応）</span>
+                        </span>
+                        <span class="hint-chevron">▼</span>
+                    </button>
+                    <div id="hint-jp-box" class="hint-box hidden" style="display: none;">
+                        <div id="hint-jp-text" class="hint-text">💡 <strong>この例題の着眼点</strong>
+・キーボードから文字を受け取るには <code>ユーザ入力()</code> を使います。
+・受け取った文字を変数（箱）に入れるには、<code>変数名 = 受け取った値</code> の順に書きます。
+・決まった文字を表示するときと、変数の中身を表示するときの書き分け（"" をつけるかどうか）に注目してみましょう。</div>
+                    </div>
                 </div>
 
                 <!-- 中央：日本語コード記述エディタ（行番号付き・ダウンロード/コピー/リセットボタン付き） -->
@@ -139,6 +249,23 @@
                     </div>
                 </div>
 
+                <!-- Pythonコードの文法・書き方ヒント -->
+                <div id="hint-py-container" class="hint-container hint-container-py">
+                    <button type="button" id="btn-hint-py" class="btn-hint-toggle" aria-expanded="false" onclick="window.toggleWorkspaceHint('py')" title="Pythonコードのヒントを表示/非表示">
+                        <span class="hint-toggle-left">
+                            <span class="hint-icon">💡</span>
+                            <span class="hint-title">Pythonコードのヒント</span>
+                        </span>
+                        <span class="hint-chevron">▼</span>
+                    </button>
+                    <div id="hint-py-box" class="hint-box hidden" style="display: none;">
+                        <div id="hint-py-text" class="hint-text">💡 <strong>Pythonの着眼点</strong>
+・日本語の <code>ユーザ入力()</code> は、Pythonでは <code>input()</code> 関数に対応します。
+・<code>print()</code> で複数の文字や変数を並べて表示するときは、カンマ <code>,</code> で区切るルールです。
+・変数名に "" をつけてしまうと変数ではなく文字そのものになってしまう点に気をつけましょう。</div>
+                    </div>
+                </div>
+
                 <div class="code-editor-wrapper python-editor-wrapper">
                     <div id="py-line-numbers" class="line-numbers" aria-hidden="true">
                         <span>1</span>
@@ -175,5 +302,103 @@
 
     </main>
 
+    <script>
+    (function() {
+        var INLINE_HINTS = {"c02_ex01": {"jp": "💡 **この例題の着眼点**\n・キーボードから文字を受け取るには `ユーザ入力()` を使います。\n・受け取った文字を変数（箱）に入れるには、`変数名 = 受け取った値` の順に書きます。\n・決まった文字を表示するときと、変数の中身を表示するときの書き分け（\"\" をつけるかどうか）に注目してみましょう。", "py": "💡 **Pythonの着眼点**\n・日本語の `ユーザ入力()` は、Pythonでは `input()` 関数に対応します。\n・`print()` で複数の文字や変数を並べて表示するときは、カンマ `,` で区切るルールです。\n・変数名に \"\" をつけてしまうと変数ではなく文字そのものになってしまう点に気をつけましょう。"}, "c02_ex02": {"jp": "💡 **この例題の着眼点**\n・コンピュータの計算では「商（整数の割り算の答え）」と「余り」を別々に計算できます。\n・商を求めるには `//`、余りを求めるには `%` という特別な記号を使います。\n・あめを均等に分けたとき「1人何個配れるか」と「何個あまるか」がそれぞれの記号に対応しています。", "py": "💡 **Pythonの着眼点**\n・Pythonでも商は `//`、余りは `%` をそのまま使います。\n・普段使うスラッシュ1本の割り算 `/` だと小数になってしまうため、整数の商を求めたいときは `//` を使うのがポイントです。"}, "c02_ex03": {"jp": "💡 **この例題の着眼点**\n・「もし〜ならば」を使うと、条件が成立したときだけ特定の処理を行うことができます。\n・条件が当てはまったときだけ実行したい行は、先頭を字下げ（インデント）して「もしの内側」であることを表します。\n・字下げされていない行は、条件に当てはまっても当てはまらなくても必ず実行される外側の処理になります。", "py": "💡 **Pythonの着眼点**\n・「もし〜ならば」は Python では `if 条件:` と書きます。行末のコロン `:` を忘れないようにしましょう。\n・Pythonではインデント（半角スペース4つ）でブロックのまとまりを判断します。\n・「〜以上」を表す不等号は `>=` の順で書くのがルールです。"}, "c02_ex04": {"jp": "💡 **この例題の着眼点**\n・「もし〜ならば」と「そうでなければ」を組み合わせると、「条件を満たす場合」と「それ以外の場合」の2択に分岐できます。\n・ある数が偶数かどうかは、「2で割った余りが0かどうか」で判定できます。\n・「そうでなければ」は条件に当てはまらなかった残りすべてを指すため、条件を書く必要がありません。", "py": "💡 **Pythonの着眼点**\n・「もし」は `if 条件:`、「そうでなければ」は `else:` に対応します。\n・`else:` には条件式を書かない点に注意しましょう（コロン `:` だけを付けます）。\n・「等しい」を比べる比較演算子は `=`（代入）ではなく `==`（等号）を使います。"}, "c02_ex05": {"jp": "💡 **この例題の着眼点**\n・3つ以上の選択肢に分けるときは「もし」「そうでなく もし」「そうでなければ」と繋げます。\n・コンピュータは条件を上から順番に判定し、最初に当てはまったものだけを実行します。\n・上の条件から外れたものが次の「そうでなく もし」に進むため、順番の並べ方が大切です。", "py": "💡 **Pythonの着眼点**\n・2つ目以降の「そうでなく もし」は `elif`（else if の略）を使います。\n・全体の構造は `if` → `elif` → `else` の順になります。\n・それぞれの分岐の行末にコロン `:` があるか、中の処理がインデントされているか確認しましょう。"}, "c02_q01": {"jp": "💡 **例1（名前の入力）を見直してみよう！**\n・例1では、キーボードから文字を受け取るためにどの命令を使っていたか見直してみましょう。\n・直接食べ物の名前を変数に代入してしまうと、実行するたびに毎回違う食べ物を入力できなくなってしまいます。\n・画面から自由に入力してもらうには、右辺にどの命令を呼べばよいか考えてみましょう。", "py": "💡 **例1のPythonコードと比べよう！**\n・Pythonでキーボードからの入力を受け取る関数は何だったか、例1のコードを思い出してみましょう。\n・受け取った値を変数 `food` に代入する形を作ります。\n・`print()` の中で変数 `food` を表示するとき、\"\" をつけるとどうなるかも意識してみましょう。"}, "c02_q02": {"jp": "💡 **例2（商と余り）を見直してみよう！**\n・1分は60秒です。例えば130秒の場合、「60で割ったときの商（何分取れるか）」と「60で割ったときの余り（何秒残るか）」に分解できます。\n・例2で学習した2つの計算記号のうち、どちらが「商」で、どちらが「余り」を求める記号だったか思い出してみましょう。", "py": "💡 **例2のPythonコードと比べよう！**\n・Pythonでも、整数の商を求める演算子と余りを求める演算子は日本語疑似コードと同じ記号を使います。\n・小数点がつかない「整数の商」を求めるにはスラッシュ1本 `/` と2本 `//` のどちらを使うべきか、例2を振り返ってみましょう。"}, "c02_q03": {"jp": "💡 **例3（条件分岐）を見直してみよう！**\n・条件を考えるときは、「誰が（どの変数）」「どの値と比べてどうなのか」を意識することが大切です。\n・単に「30以上」と書くのではなく、主語となる変数を忘れないように注意して条件を組み立ててみましょう。", "py": "💡 **例3のPythonコードと比べよう！**\n・Pythonの `if` 文では、比較演算子を使って「変数」と「数値」を比べます。\n・「以上」を表す不等号の記号（`>` と `=` の並び順）や、行末に付ける記号を例3で確認してみましょう。\n・if の条件が成立したときに実行される行が、正しくインデントされているかもチェックしましょう。"}, "c02_q04": {"jp": "💡 **例4（偶数奇数の判定）を見直してみよう！**\n・ある数が「3の倍数」であるとは、その数を3で割ったときの「余り」がいくつになると言えるでしょうか？\n・「もし」の条件式にはその余りに関する判定を入れます。例4の「偶数の判定条件」を参考に組み立ててみましょう。\n・条件に当てはまらなかった場合の分岐（2択のもう一方）を表す言葉を思い出してみましょう。", "py": "💡 **例4のPythonコードと比べよう！**\n・余りを求める記号（`%`）と、値が等しいかを判定する演算子を組み合わせて `if` の条件を作ります。\n・等しい判定の記号（`=` が何個必要か）に注意しましょう。\n・もう一方の分岐（そうでなければ）に対応するPythonのキーワードと、その行末の記号を例4で確認してみましょう。"}, "c02_q05": {"jp": "💡 **例5（成績判定の多重分岐）を見直してみよう！**\n・1つ目の分岐では、大人の条件（何歳以上か）を主語 `age` を使って表してみましょう。\n・例5で学んだ「多重分岐のキーワード」を思い出してみましょう。2番目の分岐と最後の分岐で使う言葉の違いに注目してみましょう。\n・上から順に判定されるため、2番目の条件に来た人はすでに1つ目の条件から外れているという仕組みを意識してみましょう。", "py": "💡 **例5のPythonコードと比べよう！**\n・Pythonで多重分岐を作るとき、1つ目・2つ目・最後の分岐でそれぞれ使われるキーワード（`if`, `elif`, `else`）の使い分けを確認しましょう。\n・それぞれの分岐の行末にコロン `:` が付いているか、条件式の不等号の向きが正しいかを確認してみましょう。"}, "c02_q06": {"jp": "💡 **繰り返しの重要ポイント（無限ループの防止）**\n・もしループの中で `sec` の値を変えないと、ずっと条件を満たし続けて処理が終わらなくなってしまいます。\n・毎回の繰り返しで「秒数を1つ進める」には、現在の `sec` の値を使ってどのように更新すればよいか考えてみましょう。", "py": "💡 **Pythonコードの書き方**\n・変数の値を1増やす計算は、代入の右辺で今の変数に1を足す式を書くか、加算代入の省略記法を使います。\n・`while` の条件式や行末のコロン、ループの中で繰り返す処理のインデント（字下げ）が揃っているか確認しましょう。"}, "c02_q07": {"jp": "💡 **計算の順序と変数の活用**\n・3科目の合計点（`goukei`）を求めるには、入力された3つの変数をどう組み合わせればよいでしょうか？\n・平均点（`heikin`）を求めるには、すでに求めた合計の変数と科目数（3科目）を使ってどのような計算式を立てればよいか考えてみましょう。", "py": "💡 **Pythonの割り算記号に注意！**\n・平均の計算では割り切れない場合もあるため、小数の結果をそのまま出せる割り算演算子を使います。\n・整数の商を求める `//` と、小数の結果を出す `/` のどちらが平均の計算に適しているか思い出してみましょう。"}, "c03_ex01": {"jp": "💡 **この例題の着眼点**\n・決まった回数だけ処理を繰り返すときは「〜から〜まで〜ずつ増やしながら繰り返す」という構文を使います。\n・変数 `i` は「今何回目の繰り返しなのか」を数えるカウンタの役割をしています。\n・繰り返したい命令は、先頭を字下げ（インデント）してループの内側に配置します。", "py": "💡 **Pythonの着眼点**\n・決まった回数の繰り返しは `for 変数 in range(開始, 終了, 増分):` を使います。\n・`range()` の2番目に指定する「終了値」は、**その値の手前まで**進むというPythonの仕組みに注目しましょう（例：5まで動かしたいときは終了値に6を指定します）。\n・行末のコロン `:` と、繰り返す行のインデントを忘れずに確認しましょう。"}, "c03_ex02": {"jp": "💡 **この例題の着眼点**\n・合計をためていく変数（ここでは `total`）は、繰り返しの前に `0` で初期化しておきます。\n・ループの中で `total = total + i` のように「今の合計に新しい値を足して入れ直す」ことで、1つずつ累計していきます。\n・最後の結果表示は、ループの外側（字下げなし）に置くことで、すべて足し終わったあとに1回だけ表示されます。", "py": "💡 **Pythonの着眼点**\n・ループの中で合計を足し込んでいく仕組み（累計）の書き方に注目しましょう。\n・最後の `print()` がインデントされていない理由（ループの中と外の違い）を意識してみましょう。"}, "c03_ex03": {"jp": "💡 **この例題の着眼点**\n・「〜の間 繰り返す」を使うと、回数が決まっていない繰り返し（条件が満たされている間ずっと続ける）を作ることができます。\n・繰り返しのたびにキーボードから値を受け取り、それを変数 `num` に足し込んで増やしていきます。\n・条件が成り立たなくなった時点でループが終了し、次の行へと進みます。", "py": "💡 **Pythonの着眼点**\n・「〜の間 繰り返す」は Python では `while 条件:` を使います。\n・条件が成り立っている間はずっとループ内の処理が実行され、条件から外れると自動的にループを抜けます。\n・`while` の行末のコロン `:` や、繰り返す処理のインデントを確認しましょう。"}, "c03_ex04": {"jp": "💡 **この例題の着眼点**\n・「A かつ B」を使うと、2つの条件を**両方とも満たしているときだけ**実行する分岐を作れます。\n・それぞれの条件には、必ず「誰と何を比べるか（主語と述語）」をきちんと書く必要があります。\n・文字同士を比べるときは、文字を \"\" で囲んで変数と区別します。", "py": "💡 **Pythonの着眼点**\n・「かつ」は Python では `and` というキーワードで2つの条件を繋ぎます。\n・2つの条件のそれぞれに比較演算子（`>=` や `==` など）を正しく書く必要があります。\n・文字との比較では `== \"A\"` のようにクォーテーションを忘れないようにしましょう。"}, "c03_ex05": {"jp": "💡 **この例題の着眼点**\n・繰り返しのブロックの中に条件分岐（もし〜そうでなければ）を入れる「入れ子（ネスト）」の構造です。\n・ループが進むたびに変数 `i` の値が変化し、その都度偶数か奇数かが判定されます。\n・字下げが2段階（ループの中の分岐、さらにその中の処理）になる階層関係に注目してみましょう。", "py": "💡 **Pythonの着眼点**\n・`for` の内側に `if 〜 else:` を書くため、インデントが深くなります（4スペース、8スペース）。\n・インデントのズレは構文エラー（IndentationError）や意図しない動作の原因になるので、階層を綺麗に揃えましょう。"}, "c03_q01": {"jp": "💡 **例1（決まった回数の繰り返し）を見直してみよう！**\n・ループの中で「今何回目の繰り返しなのか」を数えている変数はどれでしょうか？\n・1行目で指定した繰り返し用の変数を表示命令の中に指定することで、1問目、2問目…と順番に数字が変わって表示されます。", "py": "💡 **例1のPythonコードと比べよう！**\n・1から10まで繰り返したいとき、`range(start, stop, step)` の「終了値（stop）」にはどの数値を指定すればよいか、例1の仕組みを思い出してみましょう。\n・ループの中で変化していくカウンタ変数を `print()` の中に渡してあげましょう。"}, "c03_q02": {"jp": "💡 **例2（総和の累計計算）を見直してみよう！**\n・例2では変数 `i` そのものを合計に足していましたが、今回の問題で足し合わせたいものは何でしょうか？\n・直前の行で計算された結果が入っている変数はどれか、確認して足し込んでみましょう。\n・最後の表示命令がループの外側（字下げなし）に置かれている理由も意識してみましょう。", "py": "💡 **例2のPythonコードと比べよう！**\n・1から5まで繰り返すための `range()` の指定方法を例2で確認してみましょう。\n・計算した二乗の値を `total` に加算代入していく書き方と、ループを抜けた後に結果を一度だけ表示するためのインデント位置に注目してみましょう。"}, "c03_q03": {"jp": "💡 **例3（入力累積加算）を見直してみよう！**\n・例3では「20より小さい間」繰り返していました。問3では「0より小さくなったら終了」させたいです。\n・「〜の間 繰り返す」には、終了する条件ではなく**繰り返したい間の条件（まだ続いている状態）**を書くのがポイントです。0と比べてどういう状態の間繰り返せばよいか考えてみましょう。", "py": "💡 **例3のPythonコードと比べよう！**\n・Pythonの `while` にも、「繰り返している間成り立つべき条件」を指定します。\n・変数が0より大きいことを表す比較記号の向きや、行末のコロン `:`、ループ処理のインデントを確認してみましょう。"}, "c03_q04": {"jp": "💡 **例4（複合条件・かつ）を見直してみよう！**\n・例4は両方を満たす「かつ」でしたが、今回は「どちらか一方でも満たせばよい」という条件です。このときに使う接続語は何だったか思い出してみましょう。\n・問題文にある「金額の基準数値」や「ランクの文字」をそれぞれの条件に当てはめてみましょう。文字には \"\" が必要かどうかも意識してみましょう。", "py": "💡 **例4のPythonコードと比べよう！**\n・Pythonで「または」を意味するキーワードは何だったか確認してみましょう（例4の `and` と対比してみましょう）。\n・2つの条件式それぞれにおいて、比較演算子（`>=` や `==`）と値（数値か文字列か）の書き方に注意して組み立ててみましょう。"}, "c03_q05": {"jp": "💡 **例5（ループと分岐）を見直してみよう！**\n・1行目の繰り返しは、問題文にある「1から何まで回すか」を確認して上限の数値を入れましょう。\n・2行目では「3の倍数」と「5の倍数」の両方を同時に満たす数を判定しています。2つの条件を両方満たすときに使う接続の言葉は何でしょうか？\n・なぜ「3と5の両方の倍数」を一番最初に判定する必要があるのか、判定の順番の理由も考えてみましょう。", "py": "💡 **例5のPythonコードと比べよう！**\n・1から20まで繰り返すとき、`range()` の終了値には何を指定すべきか（指定した値の1つ手前まで進むルール）を確認しましょう。\n・「かつ」を意味するPythonキーワードを使って複合条件を作り、多重分岐（`if` → `elif` → `else`）を構成してみましょう。\n・ループと分岐が重なるため、半角スペースの字下げ（インデント）を階層ごとに正確に揃えましょう。"}, "c03_q06": {"jp": "💡 **この問題の着眼点**\n・個数を数える変数（カウンタ変数 `count`）は、繰り返しを始める前に初期値としていくつにしておくべきか考えてみましょう。\n・3の倍数が見つかるたびに、現在の `count` の値にいくつ足して更新すれば「個数が1つ増えた」ことになるか式を組み立ててみましょう。\n・最後の表示命令がループの外側（字下げなし）に置かれている理由（すべて数え終わった後に1回だけ結果を表示する）も意識してみましょう。", "py": "💡 **Pythonの着眼点**\n・Pythonでも、カウンタ変数を1増やすときは `count = count + 1` のように現在の変数に1を足して代入し直します（または加算代入 `count += 1`）。\n・`for i in range(1, 21, 1):` や `if i % 3 == 0:` の行末のコロン `:`、そして2段階に深くなるインデント（半角スペース4つ・8つ）の階層が正しく揃っているか確認しましょう。"}, "c03_q07": {"jp": "💡 **プログラムの組み立て手順（例3をお手本にしよう！）**\n・**① 最初の準備**：貯金を始める前、変数 `tyokin` の初期値をいくつからスタートすべきか先頭に書きましょう。\n・**② 繰り返しの条件**：「〜の間 繰り返す」には、目標に達するまでの状態（1000より小さい状態）を条件に指定します。\n・**③ ループの中身（字下げ）**：入力の受け取り、金額の加算、現在の金額表示の3行を、全角スペースで字下げして並べます。\n・**④ 終了後の表示（字下げなし）**：目標達成メッセージは字下げを解除して一番下に書くことで、ループがすべて終わった後に1回だけ実行されます。", "py": "💡 **Pythonコードの着眼点**\n・「〜の間 繰り返す」は `while 条件:` に対応します。行末のコロン `:` を忘れないようにしましょう。\n・ループの中で実行する処理は、半角スペース4つでインデント（字下げ）を綺麗に揃えます。\n・最後の目標達成の `print()` は、インデントを左端に戻して（字下げなしで）書くのがポイントです。"}};
+
+        function formatHintHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>');
+        }
+
+        window.toggleWorkspaceHint = function(type) {
+            var isJp = (type === 'jp');
+            var box = document.getElementById(isJp ? 'hint-jp-box' : 'hint-py-box');
+            var btn = document.getElementById(isJp ? 'btn-hint-jp' : 'btn-hint-py');
+            if (!box || !btn) return;
+            var isHidden = box.classList.contains('hidden') || box.style.display === 'none';
+            if (isHidden) {
+                // もしテキストが空の場合は現在選択中の問題IDから即座に補完
+                var textEl = document.getElementById(isJp ? 'hint-jp-text' : 'hint-py-text');
+                if (textEl && !textEl.innerHTML.trim()) {
+                    syncHintByCurrentSelect(false);
+                }
+                box.classList.remove('hidden');
+                box.style.display = 'block';
+                btn.setAttribute('aria-expanded', 'true');
+            } else {
+                box.classList.add('hidden');
+                box.style.display = 'none';
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        };
+
+        function syncHintByProblemId(probId, closeBoxes) {
+            var entry = INLINE_HINTS[probId];
+            if (!entry) return;
+            var jpText = document.getElementById('hint-jp-text');
+            var pyText = document.getElementById('hint-py-text');
+            var jpBox = document.getElementById('hint-jp-box');
+            var pyBox = document.getElementById('hint-py-box');
+            var jpBtn = document.getElementById('btn-hint-jp');
+            var pyBtn = document.getElementById('btn-hint-py');
+            var jpContainer = document.getElementById('hint-jp-container');
+            var pyContainer = document.getElementById('hint-py-container');
+
+            if (jpText && entry.jp) {
+                jpText.innerHTML = formatHintHtml(entry.jp);
+            }
+            if (pyText && entry.py) {
+                pyText.innerHTML = formatHintHtml(entry.py);
+            }
+            if (jpContainer) {
+                jpContainer.classList.remove('hidden');
+                jpContainer.style.display = '';
+            }
+            if (pyContainer) {
+                pyContainer.classList.remove('hidden');
+                pyContainer.style.display = '';
+            }
+            if (closeBoxes) {
+                if (jpBox) { jpBox.classList.add('hidden'); jpBox.style.display = 'none'; }
+                if (pyBox) { pyBox.classList.add('hidden'); pyBox.style.display = 'none'; }
+                if (jpBtn) jpBtn.setAttribute('aria-expanded', 'false');
+                if (pyBtn) pyBtn.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        function syncHintByCurrentSelect(closeBoxes) {
+            var probSelect = document.getElementById('problem-select');
+            var probId = probSelect && probSelect.value;
+            if (!probId) {
+                try { probId = window.localStorage.getItem('info1_ws_selected_problem'); } catch(e) {}
+            }
+            if (!probId) probId = 'c02_ex01';
+            syncHintByProblemId(probId, closeBoxes);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            syncHintByCurrentSelect(true);
+            var probSelect = document.getElementById('problem-select');
+            var chapSelect = document.getElementById('chapter-select');
+            if (probSelect) {
+                probSelect.addEventListener('change', function() {
+                    setTimeout(function() { syncHintByCurrentSelect(true); }, 10);
+                });
+            }
+            if (chapSelect) {
+                chapSelect.addEventListener('change', function() {
+                    setTimeout(function() { syncHintByCurrentSelect(true); }, 30);
+                });
+            }
+        });
+    })();
+    </script>
 </body>
 </html>
