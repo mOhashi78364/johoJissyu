@@ -136,6 +136,138 @@
           "file": "chap03/q08.json"
         }
       ]
+    },
+    {
+      "chapterId": "chap04",
+      "chapterTitle": "Chap4 配列",
+      "problems": [
+        {
+          "id": "c04_ex01",
+          "title": "例1 配列の要素へのアクセス（添字の基本）",
+          "file": "chap04/ex01.json"
+        },
+        {
+          "id": "c04_q01",
+          "title": "問1 配列の要素の取り出し（曜日の表示）",
+          "file": "chap04/q01.json"
+        },
+        {
+          "id": "c04_ex02",
+          "title": "例2 繰り返しと配列を組み合わせて表示",
+          "file": "chap04/ex02.json"
+        },
+        {
+          "id": "c04_q02",
+          "title": "問2 5日間の気温を順番に表示",
+          "file": "chap04/q02.json"
+        },
+        {
+          "id": "c04_ex03",
+          "title": "例3 配列の要素の合計と平均",
+          "file": "chap04/ex03.json"
+        },
+        {
+          "id": "c04_q03",
+          "title": "問3 お小遣い帳（4日間の支出）の合計金額",
+          "file": "chap04/q03.json"
+        },
+        {
+          "id": "c04_ex04",
+          "title": "例4 配列と繰り返しと分岐の組み合わせ（合格者のカウント）",
+          "file": "chap04/ex04.json"
+        },
+        {
+          "id": "c04_q04",
+          "title": "問4 猛暑日（35度以上）の日数を数える",
+          "file": "chap04/q04.json"
+        },
+        {
+          "id": "c04_ex05",
+          "title": "例5 発展：配列内の最大値の探索",
+          "file": "chap04/ex05.json"
+        },
+        {
+          "id": "c04_q05",
+          "title": "問5 発展：配列内の最小値の探索（1週間の最低気温）",
+          "file": "chap04/q05.json"
+        },
+        {
+          "id": "c04_q06",
+          "title": "問6 発展：配列内のデータの探索（線形探索）",
+          "file": "chap04/q06.json"
+        },
+        {
+          "id": "c04_q07",
+          "title": "問7 発展：合格者数のカウント（一から作成）",
+          "file": "chap04/q07.json"
+        }
+      ]
+    },
+    {
+      "chapterId": "chap05",
+      "chapterTitle": "Chap5 関数",
+      "problems": [
+        {
+          "id": "c05_ex01",
+          "title": "例1 処理の共通化（引数なし・戻り値なし）",
+          "file": "chap05/ex01.json"
+        },
+        {
+          "id": "c05_q01",
+          "title": "問1 区切り線を表示する関数の呼び出し",
+          "file": "chap05/q01.json"
+        },
+        {
+          "id": "c05_ex02",
+          "title": "例2 データを受け取って処理する（引数あり・戻り値なし）",
+          "file": "chap05/ex02.json"
+        },
+        {
+          "id": "c05_q02",
+          "title": "問2 おすすめメニューを表示する関数（引数あり）",
+          "file": "chap05/q02.json"
+        },
+        {
+          "id": "c05_ex03",
+          "title": "例3 計算結果を返す（引数あり・戻り値あり）",
+          "file": "chap05/ex03.json"
+        },
+        {
+          "id": "c05_q03",
+          "title": "問3 三角形の面積を求める関数（複数の引数と戻り値）",
+          "file": "chap05/q03.json"
+        },
+        {
+          "id": "c05_ex04",
+          "title": "例4 条件分岐と戻り値（料金判定の関数）",
+          "file": "chap05/ex04.json"
+        },
+        {
+          "id": "c05_q04",
+          "title": "問4 獲得ポイントを計算する関数（条件分岐と戻り値）",
+          "file": "chap05/q04.json"
+        },
+        {
+          "id": "c05_ex05",
+          "title": "例5 乱数（ランダムな整数）の利用",
+          "file": "chap05/ex05.json"
+        },
+        {
+          "id": "c05_q05",
+          "title": "問5 1から100までの乱数の発生",
+          "file": "chap05/q05.json"
+        },
+        {
+          "id": "c05_q06",
+          "title": "問6 発展：サイコロを120回振るシミュレーション",
+          "file": "chap05/q06.json"
+        },
+        {
+          "id": "c05_q07",
+          "title": "問7 発展：おみくじプログラム（一から作成）",
+          "file": "chap05/q07.json"
+        }
+      ]
     }
   ]
 }

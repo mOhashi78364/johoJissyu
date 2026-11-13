@@ -1,0 +1,11 @@
+{
+  "id": "c05_ex04",
+  "title": "例4 条件分岐と戻り値（料金判定の関数）",
+  "category": "第5章 関数と乱数",
+  "chapter": "chap05",
+  "description": "関数の中で年齢に応じた条件分岐を行い、決定した入場料金を呼び出し元に返す手順です。",
+  "template": "関数 getRyokin(nenrei)\n　もし nenrei が 18 以上 ならば\n　　ryokin = 1800\n　そうでなければ\n　　ryokin = 1000\n　ryokin を返す\nuserAge = ユーザ入力(\"年齢を入力してください: \")\nfee = getRyokin(userAge)\n表示する(\"入場料金は\", fee, \"円です\")",
+  "template_py": "def getRyokin(nenrei):\n    if nenrei >= 18:\n        ryokin = 1800\n    else:\n        ryokin = 1000\n    return ryokin\nuserAge = newInput(\"年齢を入力してください: \")\nfee = getRyokin(userAge)\nprint(\"入場料金は\", fee, \"円です\")",
+  "hint_jp": "💡 **この例題の着眼点**\n・関数の中に「もし〜そうでなければ」の条件分岐を入れ、条件によって変数 `ryokin` に入れる金額を変えています。\n・分岐が終わったあと、関数の最後で決定した変数 `ryokin` を返しています。\n・関数の中の字下げ（インデント）の段階にも注目してみましょう。",
+  "hint_py": "💡 **Pythonの着眼点**\n・`def` の中に `if 〜 else:` が入るため、代入文は半角スペース8つ（2段階）のインデントになります。\n・最後の `return ryokin` は `if` と同じ深さ（半角スペース4つ）に揃えることで、どちらの分岐を通っても最後に結果が返されます。"
+}

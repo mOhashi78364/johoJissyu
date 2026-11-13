@@ -16,73 +16,30 @@ const CONFIG = {
 const FALLBACK_QUESTIONS = [
   {
     id: 1,
-    category: 'コンピュータとプログラミング（論理回路）',
-    question: '次の論理回路の出力として正しい真理値表を選びなさい。',
-    image: './images/circuit01.svg',
+    category: '13 情報のデジタル化',
+    question: '日常生活で扱うデータにおいて、色や温度、時間などの「連続的な量」として表されるデータを何と呼ぶか、最も適切なものを選びなさい。',
+    options: [
+      { text: 'アナログデータ' },
+      { text: 'デジタルデータ' },
+      { text: 'バイナリデータ' },
+      { text: 'パルスデータ' }
+    ],
+    answer: 0,
+    explanation: '日常生活の中で色や温度、時間などのデータを扱う場合において、連続的な量で扱うデータを「アナログデータ」、連続的な量を一定の間隔で区切って離散的な値で表すデータを「デジタルデータ」と呼びます。'
+  },
+  {
+    id: 2,
+    category: '30 論理回路',
+    question: '次のAND回路（論理積）の出力Yとして正しい真理値表を選びなさい。',
+    image: './images/gate_and.svg',
     options: [
       { text: '表A', image: './images/table_a.svg' },
       { text: '表B', image: './images/table_b.svg' },
       { text: '表C', image: './images/table_c.svg' },
       { text: '表D', image: './images/table_d.svg' }
     ],
-    answer: 0,
-    explanation: '論理積(AND)の出力を論理否定(NOT)で反転させたNAND回路であるため、A=1かつB=1のときのみ0となり、それ以外は1となる「表A」が正解です。'
-  },
-  {
-    id: 2,
-    category: '情報通信ネットワーク',
-    question: 'IPアドレスのIPv6は128ビットで構成される。正しいか誤りか答えよ。',
-    options: [
-      { text: '正しい' },
-      { text: '誤り' }
-    ],
-    answer: 0,
-    explanation: 'IPv4は32ビット（約43億通り）ですが、アドレス枯渇対策として策定されたIPv6は128ビットで構成されます。'
-  },
-  {
-    id: 3,
-    category: 'データのデジタル化',
-    question: 'アナログの音声データをデジタルデータへ変換（A/D変換）する際の処理手順として、正しい順序を選びなさい。',
-    options: [
-      { text: '標本化（サンプリング） → 量子化 → 符号化' },
-      { text: '量子化 → 標本化（サンプリング） → 符号化' },
-      { text: '符号化 → 量子化 → 標本化（サンプリング）' },
-      { text: '標本化（サンプリング） → 符号化 → 量子化' }
-    ],
-    answer: 0,
-    explanation: 'A/D変換では、まず一定時間ごとに波の高さを測定する「標本化（サンプリング）」を行い、次に測定値を段階的な整数値に丸める「量子化」、最後に2進数へ変換する「符号化」の順で処理します。'
-  },
-  {
-    id: 4,
-    category: 'データの圧縮と形式',
-    question: '次の画像ファイル形式のうち、圧縮後に元のデータを完全に復元できない「非可逆圧縮」が標準で使われるものはどれか。',
-    options: [
-      { text: 'PNG形式' },
-      { text: 'JPEG形式' },
-      { text: 'GIF形式' }
-    ],
     answer: 1,
-    explanation: 'JPEG形式は人間の視覚が気づきにくい高周波成分や微細な色差データを間引く「非可逆圧縮」を用いるため、写真などのフルカラー画像を高い圧縮率で保存できます。'
-  },
-  {
-    id: 5,
-    category: 'アルゴリズムとプログラミング（疑似言語）',
-    question: '次の疑似コードを実行したとき、最後に表示される `s` の値として正しいものを選びなさい。',
-    code: [
-      's ← 0',
-      'i を 1 から 5 まで 1 ずつ増やしながら繰り返す:',
-      '    もし i % 2 = 1 ならば:',
-      '        s ← s + i',
-      '表示する(s)'
-    ],
-    options: [
-      { text: '6' },
-      { text: '9' },
-      { text: '10' },
-      { text: '15' }
-    ],
-    answer: 1,
-    explanation: '`i % 2 = 1` は `i` を2で割った余りが1（つまり奇数）のときに真となります。1から5までの奇数 `1, 3, 5` が `s` に加算されるため、`1 + 3 + 5 = 9` が表示されます。'
+    explanation: 'AND回路（論理積）は、入力Aと入力Bの両方が1のときのみ出力Yが1となり、それ以外は0になるため「表B」が正解です。'
   }
 ];
 
@@ -95,6 +52,8 @@ const state = {
   wrongCounts: {},       // 問題IDごとの累計誤答回数 { [id]: count }
   storedWrongIds: [],    // 誤答回数が多い順に並んだ問題IDリスト
   isReviewMode: false,   // 復習モードかどうか
+  isQuickMode: false,    // サクッと10問モードかどうか
+  selectedUnit: 'all',   // 選択中の出題範囲
   isAnswered: false      // 現在の問題に解答済みかどうか
 };
 
@@ -139,14 +98,19 @@ function cacheDomElements() {
   // スタート画面
   dom.startView = document.getElementById('start-view');
   dom.versionBadge = document.getElementById('version-badge');
+  dom.unitSelect = document.getElementById('unit-select');
   dom.startAllBtn = document.getElementById('start-all-btn');
   dom.startTotalCountBadge = document.getElementById('start-total-count-badge');
+  dom.startQuick10Btn = document.getElementById('start-quick10-btn');
+  dom.startQuick10Badge = document.getElementById('start-quick10-badge');
   dom.startReviewBtn = document.getElementById('start-review-btn');
   dom.startWrongCountBadge = document.getElementById('start-wrong-count-badge');
   dom.clearHistoryBtn = document.getElementById('clear-history-btn');
 
-  // クイズ画面（問題と選択肢のみ）
+  // クイズ画面（問題・最小限の進捗・戻るボタン）
   dom.quizView = document.getElementById('quiz-view');
+  dom.backFromQuizBtn = document.getElementById('back-from-quiz-btn');
+  dom.quizProgressText = document.getElementById('quiz-progress-text');
   dom.questionNumber = document.getElementById('question-number');
   dom.questionText = document.getElementById('question-text');
   dom.questionCodeWrap = document.getElementById('question-code-wrap');
@@ -201,7 +165,6 @@ function checkAndInitStorage() {
       return;
     }
 
-    // オブジェクト形式 { version, wrongIds, wrongCounts } の場合
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
       if (parsed.version !== CONFIG.APP_VERSION) {
         resetStorageForNewVersion();
@@ -228,7 +191,6 @@ function checkAndInitStorage() {
       return;
     }
 
-    // 配列形式 [1, 2, ...] が直接入っていた場合（補助バージョンキーと照合）
     if (Array.isArray(parsed)) {
       if (auxVersion !== CONFIG.APP_VERSION) {
         resetStorageForNewVersion();
@@ -356,22 +318,71 @@ async function loadQuestions() {
 }
 
 /**
+ * カテゴリ文字列から出題範囲キーを判定する
+ */
+function getUnitKeyFromCategory(category) {
+  const cat = String(category || '');
+  if (/^(13|14|15|16|17|18|19)\b/.test(cat)) return 'digital';
+  if (/^(27|28|29)\b/.test(cat)) return 'hardware';
+  if (/^(30|31|32)\b/.test(cat)) return 'logic';
+  if (/^(33|34|35)\b/.test(cat) || cat.includes('プログラム')) return 'program';
+  return 'other';
+}
+
+/**
+ * 指定された出題範囲に該当する問題リストを返す
+ */
+function getFilteredQuestions(unitKey) {
+  if (!unitKey || unitKey === 'all') {
+    return [...state.allQuestions];
+  }
+  return state.allQuestions.filter(q => getUnitKeyFromCategory(q.category) === unitKey);
+}
+
+/**
+ * 配列をFisher-Yatesアルゴリズムでシャッフルしたコピーを返す
+ */
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/**
  * イベントリスナーの登録
  */
 function bindEvents() {
+  // 出題範囲セレクト変更時
+  dom.unitSelect.addEventListener('change', () => {
+    state.selectedUnit = dom.unitSelect.value;
+    updateStartButtonsForUnit();
+  });
+
   // スタート画面のボタン
   dom.startAllBtn.addEventListener('click', () => {
-    startQuiz(false);
+    startQuiz('all');
+  });
+
+  dom.startQuick10Btn.addEventListener('click', () => {
+    startQuiz('quick10');
   });
 
   dom.startReviewBtn.addEventListener('click', () => {
     if (state.storedWrongIds.length > 0) {
-      startQuiz(true);
+      startQuiz('review');
     }
   });
 
   dom.clearHistoryBtn.addEventListener('click', () => {
     saveWrongCountsToStorage({});
+    renderStartScreen();
+  });
+
+  // 問題画面の中断（戻る）ボタン
+  dom.backFromQuizBtn.addEventListener('click', () => {
     renderStartScreen();
   });
 
@@ -381,7 +392,7 @@ function bindEvents() {
   // 結果画面のボタン
   dom.reviewWrongBtn.addEventListener('click', () => {
     if (state.storedWrongIds.length > 0) {
-      startQuiz(true);
+      startQuiz('review');
     }
   });
 
@@ -391,15 +402,32 @@ function bindEvents() {
 }
 
 /**
+ * 選択中の出題範囲に合わせてスタート画面のボタン表示を更新
+ */
+function updateStartButtonsForUnit() {
+  const filtered = getFilteredQuestions(state.selectedUnit);
+  const count = filtered.length;
+
+  dom.startTotalCountBadge.textContent = `全${count}問`;
+  dom.startAllBtn.disabled = count === 0;
+
+  const quickCount = Math.min(10, count);
+  dom.startQuick10Badge.textContent = `${quickCount}問`;
+  setVisible(dom.startQuick10Btn, count > 10);
+}
+
+/**
  * 1. スタート画面の表示
  */
 function renderStartScreen() {
   switchScreen('start');
 
-  const totalCount = state.allQuestions.length;
-  const wrongCount = state.storedWrongIds.length;
+  if (dom.unitSelect) {
+    dom.unitSelect.value = state.selectedUnit;
+  }
+  updateStartButtonsForUnit();
 
-  dom.startTotalCountBadge.textContent = `全${totalCount}問`;
+  const wrongCount = state.storedWrongIds.length;
   dom.startWrongCountBadge.textContent = `${wrongCount}問`;
 
   if (wrongCount > 0) {
@@ -417,10 +445,10 @@ function renderStartScreen() {
 
 /**
  * クイズの開始
- * @param {boolean} reviewOnly - trueの場合は間違えた問題を誤答回数が多い順に抽出して開始
+ * @param {'all'|'quick10'|'review'} mode - 出題モード
  */
-function startQuiz(reviewOnly = false) {
-  if (reviewOnly) {
+function startQuiz(mode = 'all') {
+  if (mode === 'review') {
     // 間違えた回数が多い順に並べる
     const wrongQuestions = state.allQuestions
       .filter(q => (state.wrongCounts[q.id] || 0) > 0)
@@ -436,10 +464,26 @@ function startQuiz(reviewOnly = false) {
     }
 
     state.isReviewMode = true;
+    state.isQuickMode = false;
     state.activeQuestions = wrongQuestions;
-  } else {
+  } else if (mode === 'quick10') {
+    const filtered = getFilteredQuestions(state.selectedUnit);
+    if (filtered.length === 0) {
+      renderStartScreen();
+      return;
+    }
     state.isReviewMode = false;
-    state.activeQuestions = [...state.allQuestions];
+    state.isQuickMode = true;
+    state.activeQuestions = shuffleArray(filtered).slice(0, 10);
+  } else {
+    const filtered = getFilteredQuestions(state.selectedUnit);
+    if (filtered.length === 0) {
+      renderStartScreen();
+      return;
+    }
+    state.isReviewMode = false;
+    state.isQuickMode = false;
+    state.activeQuestions = filtered;
   }
 
   state.currentIndex = 0;
@@ -580,6 +624,11 @@ function renderCurrentQuestion() {
 
   state.isAnswered = false;
 
+  // 最小限の進捗表示（何問目 / 全何問）
+  if (dom.quizProgressText) {
+    dom.quizProgressText.textContent = `${currentNum} / ${total}`;
+  }
+
   // 回答前の状態として、正誤フィードバック＆解説エリアを確実に隠して中身をクリアする
   setVisible(dom.feedbackArea, false);
   dom.feedbackIcon.textContent = '';
@@ -719,7 +768,6 @@ function renderExplanation(explanationRaw) {
   dom.explanationText.innerHTML = '';
   const text = explanationRaw || '解説はありません。';
 
-  // ```...``` で囲まれたコードブロックと通常テキストを分割して順番に描画
   const segments = String(text).split(/(```[\s\S]*?```)/g);
   segments.forEach(segment => {
     if (segment.startsWith('```') && segment.endsWith('```')) {
@@ -749,6 +797,12 @@ function handleSelectOption(selectedIndex) {
 
   if (isCorrect) {
     state.correctCount++;
+    // 復習モードで正解した場合は、克服済みとして復習リストから除外する
+    if (state.isReviewMode && state.wrongCounts[question.id]) {
+      const updatedCounts = { ...state.wrongCounts };
+      delete updatedCounts[question.id];
+      saveWrongCountsToStorage(updatedCounts);
+    }
   } else {
     // 間違えた回数をカウントアップしてlocalStorageへ保存
     const currentWrongCount = state.wrongCounts[question.id] || 0;
@@ -808,9 +862,13 @@ function renderResultScreen() {
   const correct = state.correctCount;
   const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
-  dom.resultModeLabel.textContent = state.isReviewMode
-    ? '復習モード 結果'
-    : '定期テスト対策 結果';
+  if (state.isReviewMode) {
+    dom.resultModeLabel.textContent = '復習モード 結果';
+  } else if (state.isQuickMode) {
+    dom.resultModeLabel.textContent = 'サクッと10問チャレンジ 結果';
+  } else {
+    dom.resultModeLabel.textContent = '定期テスト対策 結果';
+  }
 
   dom.scoreNumber.textContent = correct;
   dom.scoreTotal.textContent = total;

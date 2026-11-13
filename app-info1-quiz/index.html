@@ -83,14 +83,14 @@
        =================================================== */
     .start-view {
       text-align: center;
-      padding: 2rem 1.25rem;
-      gap: 1.5rem;
+      padding: 1.75rem 1.25rem;
+      gap: 1.35rem;
     }
 
     .start-header {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.45rem;
       align-items: center;
     }
 
@@ -113,23 +113,58 @@
 
     .start-desc {
       margin: 0;
-      font-size: 0.95rem;
+      font-size: 0.94rem;
       color: #4B5563;
+    }
+
+    /* 出題範囲セレクトボックス */
+    .unit-filter-box {
+      text-align: left;
+      background-color: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .unit-filter-label {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: var(--sub2);
+    }
+
+    .unit-select {
+      width: 100%;
+      min-height: 44px;
+      padding: 0.55rem 0.75rem;
+      font-size: 0.98rem;
+      font-weight: bold;
+      color: var(--text);
+      background-color: var(--white);
+      border: 2px solid #CBD5E1;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .unit-select:focus {
+      outline: none;
+      border-color: var(--main);
     }
 
     .start-actions {
       display: flex;
       flex-direction: column;
-      gap: 0.85rem;
-      margin-top: 0.25rem;
+      gap: 0.8rem;
     }
 
     .btn-start-all {
       width: 100%;
-      min-height: 56px;
-      font-size: 1.08rem;
+      min-height: 54px;
+      font-size: 1.05rem;
       border-radius: 12px;
-      padding: 0.9rem 1.2rem;
+      padding: 0.85rem 1.2rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -137,10 +172,36 @@
       box-shadow: 0 4px 6px rgba(37, 99, 235, 0.15);
     }
 
+    .btn-quick-ten {
+      width: 100%;
+      min-height: 54px;
+      font-size: 1.02rem;
+      border-radius: 12px;
+      padding: 0.85rem 1.2rem;
+      background-color: #0EA5E9;
+      color: var(--white);
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: background-color 0.15s ease, transform 0.1s ease;
+    }
+
+    .btn-quick-ten:hover {
+      background-color: #0284C7;
+    }
+
+    .btn-quick-ten:active {
+      transform: scale(0.98);
+    }
+
     .btn-review-wrong {
       width: 100%;
-      min-height: 56px;
-      font-size: 1.05rem;
+      min-height: 54px;
+      font-size: 1.02rem;
       border-radius: 12px;
       background-color: var(--accent);
       color: var(--white);
@@ -148,7 +209,7 @@
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
-      padding: 0.9rem 1.2rem;
+      padding: 0.85rem 1.2rem;
       border: none;
       font-weight: bold;
       cursor: pointer;
@@ -201,8 +262,45 @@
     }
 
     /* ===================================================
-       2. 問題画面（問題と選択肢のみをシンプルに表示）
+       2. 問題画面（問題・最小限の進捗・中断ボタン）
        =================================================== */
+    .quiz-top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .btn-quiz-back {
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      color: #475569;
+      font-size: 0.85rem;
+      font-weight: bold;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .btn-quiz-back:hover {
+      background: #E2E8F0;
+      color: var(--text);
+    }
+
+    .quiz-progress-text {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--sub2);
+      background-color: var(--sub1);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+    }
+
     .question-box {
       display: flex;
       flex-direction: column;
@@ -317,7 +415,7 @@
     .question-image-container img {
       display: block;
       max-width: 100%;
-      max-height: 220px;
+      max-height: 320px;
       width: auto;
       height: auto;
       object-fit: contain;
@@ -682,14 +780,31 @@
         <span id="version-badge" class="start-badge">Ver: -</span>
         <h2 class="start-title">情報I 一問一答演習</h2>
         <p class="start-desc">
-          最初からすべての問題に挑戦するか、間違えた問題だけを優先的に復習するかを選択してください。
+          出題範囲とモードを選んでスタートしましょう。
         </p>
+      </div>
+
+      <!-- 出題範囲（分野）の絞り込み -->
+      <div class="unit-filter-box">
+        <label for="unit-select" class="unit-filter-label">出題範囲</label>
+        <select id="unit-select" class="unit-select">
+          <option value="all">すべての範囲</option>
+          <option value="digital">データのデジタル化・2進法・圧縮</option>
+          <option value="hardware">コンピュータ・OS・五大装置</option>
+          <option value="logic">論理回路・フローチャート</option>
+          <option value="program">プログラム（分岐・繰り返し・配列）</option>
+        </select>
       </div>
 
       <div class="start-actions">
         <button type="button" id="start-all-btn" class="btn btn-start-all">
-          <span>すべての問題を解く</span>
+          <span>選択した範囲をすべて解く</span>
           <span id="start-total-count-badge" class="count-pill">0問</span>
+        </button>
+
+        <button type="button" id="start-quick10-btn" class="btn-quick-ten">
+          <span>サクッと10問チャレンジ</span>
+          <span id="start-quick10-badge" class="count-pill">10問</span>
         </button>
 
         <button type="button" id="start-review-btn" class="btn-review-wrong" disabled>
@@ -703,8 +818,14 @@
       </div>
     </section>
 
-    <!-- 2. 問題画面（問題と選択肢のみを表示し、回答するまで正解・解説は非表示） -->
+    <!-- 2. 問題画面（問題と選択肢、最小限の進捗と戻るボタンのみを表示） -->
     <section id="quiz-view" class="screen-view hidden" aria-live="polite" hidden>
+      <!-- 最上部の控えめなナビゲーション（中断ボタンと進捗） -->
+      <div class="quiz-top-nav">
+        <button type="button" id="back-from-quiz-btn" class="btn-quiz-back">← もどる</button>
+        <span id="quiz-progress-text" class="quiz-progress-text">1 / 39</span>
+      </div>
+
       <!-- 問題文・疑似コード・図 -->
       <div class="question-box">
         <h2 class="question-heading">

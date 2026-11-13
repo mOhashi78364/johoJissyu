@@ -1,0 +1,11 @@
+{
+  "id": "c05_ex03",
+  "title": "例3 計算結果を返す（引数あり・戻り値あり）",
+  "category": "第5章 関数と乱数",
+  "chapter": "chap05",
+  "description": "税抜き価格を受け取って税込価格（1.1倍）を計算し、その結果を呼び出し元に返す関数 zeikomi(nedan) の手順です。",
+  "template": "関数 zeikomi(nedan)\n　nedan * 1.1 を返す\np = ユーザ入力(\"税抜き価格を入力してください: \")\ntotal = zeikomi(p)\n表示する(\"税込価格は\", total, \"円です\")",
+  "template_py": "def zeikomi(nedan):\n    return nedan * 1.1\np = newInput(\"税抜き価格を入力してください: \")\ntotal = zeikomi(p)\nprint(\"税込価格は\", total, \"円です\")",
+  "hint_jp": "💡 **この例題の着眼点**\n・関数の中で計算した結果を、呼び出した場所へ送り返すことを「値を返す」と言い、返された値を「戻り値（返り値）」と呼びます。\n・`total = zeikomi(p)` と書くことで、関数 `zeikomi` が返した計算結果を変数 `total` が受け取っています。",
+  "hint_py": "💡 **Pythonの着眼点**\n・Pythonでは計算結果を呼び出し元に返すときに `return 値（または式）` を使います。\n・戻り値がある関数は、`変数 = 関数名(引数)` の形で呼び出すことで、返ってきた結果を変数に代入して使えます。"
+}

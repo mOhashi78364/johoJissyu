@@ -1,0 +1,11 @@
+{
+  "id": "c04_ex04",
+  "title": "例4 配列と繰り返しと分岐の組み合わせ（合格者のカウント）",
+  "category": "第4章 配列",
+  "chapter": "chap04",
+  "description": "6人分の得点が入った配列 Scores を順番に調べ、80点以上の合格者が何人いるかを数える手順です。",
+  "template": "Scores = [75, 88, 62, 90, 82, 58]\ngoukaku = 0\ni を 0 から 5 まで 1 ずつ増やしながら繰り返す\n　もし Scores[i] が 80 以上 ならば\n　　表示する(Scores[i], \"点は合格です！\")\n　　goukaku = goukaku + 1\n　そうでなければ\n　　表示する(Scores[i], \"点は不合格です。\")\n表示する(\"80点以上の合格者は\", goukaku, \"人でした！\")",
+  "template_py": "Scores = [75, 88, 62, 90, 82, 58]\ngoukaku = 0\nfor i in range(0, 6, 1):\n    if Scores[i] >= 80:\n        print(Scores[i], \"点は合格です！\")\n        goukaku = goukaku + 1\n    else:\n        print(Scores[i], \"点は不合格です。\")\nprint(\"80点以上の合格者は\", goukaku, \"人でした！\")",
+  "hint_jp": "💡 **この例題の着眼点**\n・配列の各要素 `Scores[i]` をループで1つずつ取り出し、「もし80以上ならば」という条件分岐にかけています。\n・条件を満たしたときだけ、人数を数えるカウンタ変数 `goukaku` を `1` ずつ増やしています。\n・点数を足し合わせる場合（例3）と、人数を数える場合（`+ 1` する）の違いに注目してみましょう。",
+  "hint_py": "💡 **Pythonの着眼点**\n・`for` ループの中に `if Scores[i] >= 80:` と `else:` が入る2段階のインデント構造になっています。\n・合格したときだけ `goukaku = goukaku + 1` が実行されるよう、`if` の内側に字下げして配置されています。"
+}

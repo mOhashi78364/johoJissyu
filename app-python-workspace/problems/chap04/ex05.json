@@ -1,0 +1,11 @@
+{
+  "id": "c04_ex05",
+  "title": "例5 発展：配列内の最大値の探索",
+  "category": "第4章 配列",
+  "chapter": "chap04",
+  "description": "配列 Scores の中から一番高い点数（最大値）を見つけ出す手順です。最初の要素を仮の最大値とし、より大きい値が見つかるたびに更新していきます。",
+  "template": "Scores = [68, 82, 95, 74, 91]\nsaikou = Scores[0]\ni を 1 から 4 まで 1 ずつ増やしながら繰り返す\n　もし Scores[i] が saikou より大きい ならば\n　　saikou = Scores[i]\n　　表示する(i + 1, \"番目で最大値が更新されました:\", saikou)\n表示する(\"最高得点は\", saikou, \"点です！\")",
+  "template_py": "Scores = [68, 82, 95, 74, 91]\nsaikou = Scores[0]\nfor i in range(1, 5, 1):\n    if Scores[i] > saikou:\n        saikou = Scores[i]\n        print(i + 1, \"番目で最大値が更新されました:\", saikou)\nprint(\"最高得点は\", saikou, \"点です！\")",
+  "hint_jp": "💡 **この例題の着眼点**\n・最大値を探すときは、まず先頭の要素 `Scores[0]` を「暫定チャンピオン（仮の最高点 `saikou`）」として記憶しておきます。\n・続く1番目から4番目までの要素 `Scores[i]` と `saikou` を順番に比べ、`saikou` より大きい値が見つかったらその値で `saikou` を上書き（更新）します。\n・0番目はすでに `saikou` に入っているため、ループが `1` から始まっている点にも注目してみましょう。",
+  "hint_py": "💡 **Pythonの着眼点**\n・最初に `saikou = Scores[0]` とし、`for i in range(1, 5, 1):` で残りの要素と順番に比較します。\n・`if Scores[i] > saikou:` が成り立ったとき、`saikou = Scores[i]` で暫定の最大値を新しい値に置き換えます。"
+}
