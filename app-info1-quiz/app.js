@@ -4,7 +4,7 @@
  */
 
 const CONFIG = {
-  APP_VERSION: '2026-term2',
+  APP_VERSION: '2026-term2-v2',
   STORAGE_KEY: 'info1_quiz_wrong_items',
   QUESTIONS_PATH: './questions.json'
 };
