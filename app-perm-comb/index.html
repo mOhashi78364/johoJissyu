@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>順列・組み合わせ 計算タイムアタック</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        /* ===================================================
+           アプリ固有スタイル（共通CSSの変数を活用）
+           =================================================== */
+        :root {
+            --key-bg: #FFFFFF;
+            --key-border: #D1D5DB;
+            --key-shadow: #9CA3AF;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation; /* ダブルタップズーム防止 */
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100dvh;
+            background-color: var(--bg);
+            color: var(--text);
+        }
+
+        /* ヘッダー（プレイ中はコンパクトに隠す/切り替える） */
+        .app-header {
+            background-color: var(--sub1);
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--main);
+            flex-shrink: 0;
+        }
+
+        .app-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 0.75rem;
+            border-radius: 6px;
+            background-color: var(--white);
+            color: var(--sub2);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border: 1px solid var(--main);
+            transition: background-color 0.15s;
+        }
+
+        .back-link:hover {
+            background-color: var(--main);
+            color: var(--white);
+        }
+
+        .app-header h1 {
+            margin: 0;
+            color: var(--sub2);
+            font-size: 1.25rem;
+        }
+
+        .sound-toggle-btn {
+            min-width: 44px;
+            min-height: 44px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--muted);
+            background: var(--white);
+            color: var(--text);
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .sound-toggle-btn:hover {
+            background: #F3F4F6;
+        }
+
+        /* メインラッパー */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .screen {
+            width: 100%;
+            display: none;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* パネル共通 */
+        .panel {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        /* ===================================================
+           1. タイトル／設定画面
+           =================================================== */
+        .title-hero {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .title-hero h2 {
+            margin: 0 0 0.4rem;
+            font-size: 1.5rem;
+            color: var(--sub2);
+        }
+
+        .title-hero p {
+            margin: 0;
+            font-size: 0.95rem;
+            color: #4B5563;
+        }
+
+        .option-group {
+            margin-top: 1.25rem;
+        }
+
+        .option-label {
+            display: block;
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: var(--sub2);
+            margin-bottom: 0.5rem;
+        }
+
+        .segmented-grid {
+            display: grid;
+            gap: 0.6rem;
+        }
+
+        .segmented-grid.cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .segmented-grid.cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .select-btn {
+            min-height: 48px;
+            padding: 0.6rem 0.5rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            background: var(--white);
+            color: var(--text);
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.3;
+        }
+
+        .select-btn small {
+            font-weight: normal;
+            font-size: 0.75rem;
+            color: #6B7280;
+            margin-top: 2px;
+        }
+
+        .select-btn:hover {
+            border-color: var(--main);
+            background-color: #F8FAFC;
+        }
+
+        .select-btn.selected {
+            border-color: var(--main);
+            background-color: var(--sub1);
+            color: var(--sub2);
+        }
+
+        .select-btn.selected small {
+            color: var(--sub2);
+        }
+
+        .best-score-box {
+            margin-top: 1.25rem;
+            padding: 0.85rem 1rem;
+            background: #F3F4F6;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+
+        .best-score-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--main);
+        }
+
+        .start-btn {
+            width: 100%;
+            min-height: 56px;
+            margin-top: 1.25rem;
+            font-size: 1.2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 0 var(--sub2);
+        }
+
+        .start-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 var(--sub2);
+        }
+
+        /* ===================================================
+           2. ゲームプレイ画面（1画面に収まる設計）
+           =================================================== */
+        body.is-playing .app-header {
+            display: none;
+        }
+
+        body.is-playing main {
+            padding: 0.6rem 0.75rem;
+            justify-content: space-between;
+            height: 100dvh;
+            max-height: 100dvh;
+        }
+
+        #play-screen.active {
+            height: 100%;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        /* 上部HUD */
+        .hud-wrapper {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 0.6rem 0.85rem;
+            box-shadow: var(--shadow);
+            flex-shrink: 0;
+        }
+
+        .hud-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-bottom: 0.45rem;
+        }
+
+        .hud-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 68px;
+        }
+
+        .hud-stat-label {
+            font-size: 0.7rem;
+            color: #6B7280;
+            font-weight: bold;
+        }
+
+        .hud-stat-val {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--sub2);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .hud-timer-val {
+            font-size: 1.35rem;
+            color: var(--main);
+        }
+
+        .hud-timer-val.urgent {
+            color: var(--accent);
+            animation: pulse 0.6s infinite alternate;
+        }
+
+        .combo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.15rem 0.55rem;
+            border-radius: 999px;
+            background: var(--sub1);
+            color: var(--sub2);
+            font-size: 0.95rem;
+            font-weight: bold;
+            transition: transform 0.15s ease;
+        }
+
+        .combo-badge.hot {
+            background: var(--warning-bg);
+            color: #B45309;
+        }
+
+        .combo-badge.bump {
+            transform: scale(1.18);
+        }
+
+        .hud-controls {
+            display: flex;
+            gap: 0.35rem;
+        }
+
+        .hud-icon-btn {
+            min-width: 44px;
+            min-height: 44px;
+            padding: 0 0.6rem;
+            border-radius: 8px;
+            border: 1px solid #D1D5DB;
+            background: var(--white);
+            color: var(--text);
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .hud-icon-btn:hover {
+            background: #F3F4F6;
+        }
+
+        .time-bar-track {
+            width: 100%;
+            height: 8px;
+            background: #E5E7EB;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .time-bar-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--main), #60A5FA);
+            transition: width 0.1s linear;
+        }
+
+        .time-bar-fill.urgent {
+            background: linear-gradient(90deg, var(--accent), #F87171);
+        }
+
+        /* 中央：問題＆入力エリア */
+        .question-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 0.9rem 1rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-height: 130px;
+            position: relative;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+            border: 3px solid transparent;
+        }
+
+        .question-card.flash-correct {
+            border-color: var(--success);
+            background-color: #ECFDF5;
+        }
+
+        .question-card.flash-wrong {
+            border-color: var(--accent);
+            background-color: #FEF2F2;
+            animation: shake 0.32s ease;
+        }
+
+        .math-expr {
+            display: inline-flex;
+            align-items: baseline;
+            justify-content: center;
+            font-size: clamp(2.4rem, 8vw, 3.4rem);
+            font-weight: bold;
+            color: var(--sub2);
+            line-height: 1;
+            margin-bottom: 0.75rem;
+            user-select: none;
+        }
+
+        .math-expr .sub-left,
+        .math-expr .sub-right {
+            font-size: 0.52em;
+            font-weight: bold;
+            position: relative;
+            top: 0.22em;
+        }
+
+        .math-expr .sub-left {
+            margin-right: 0.06em;
+        }
+
+        .math-expr .sub-right {
+            margin-left: 0.04em;
+        }
+
+        .math-expr .op {
+            font-family: 'Times New Roman', Georgia, serif;
+            letter-spacing: 0.02em;
+        }
+
+        .answer-display-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            width: 100%;
+        }
+
+        .equals-sign {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #6B7280;
+        }
+
+        .answer-box {
+            min-width: 140px;
+            max-width: 220px;
+            width: 55%;
+            height: 52px;
+            border: 2px solid var(--main);
+            border-radius: 10px;
+            background: #F9FAFB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .answer-box.placeholder {
+            color: #9CA3AF;
+            font-size: 1.1rem;
+            font-weight: normal;
+        }
+
+        .feedback-toast {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.75rem;
+            font-weight: bold;
+            font-size: 1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease, transform 0.2s ease;
+        }
+
+        .feedback-toast.show-correct {
+            color: var(--success);
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+
+        .feedback-toast.show-wrong {
+            color: var(--accent);
+            opacity: 1;
+        }
+
+        /* 下部：テンキー */
+        .keypad-area {
+            width: 100%;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.45rem;
+        }
+
+        .key-btn {
+            min-height: 52px;
+            height: clamp(50px, 8dvh, 64px);
+            border: 1px solid var(--key-border);
+            border-radius: 10px;
+            background: var(--key-bg);
+            color: var(--text);
+            font-size: 1.45rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 3px 0 var(--key-shadow);
+            transition: transform 0.06s ease, box-shadow 0.06s ease, background-color 0.1s;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .key-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 var(--key-shadow);
+            background-color: #F3F4F6;
+        }
+
+        .key-btn.key-func {
+            background: #E5E7EB;
+            color: #374151;
+            font-size: 1.1rem;
+        }
+
+        .key-enter {
+            width: 100%;
+            min-height: 54px;
+            height: clamp(52px, 8.2dvh, 64px);
+            border: none;
+            border-radius: 10px;
+            background: var(--main);
+            color: var(--white);
+            font-size: 1.25rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--sub2);
+            transition: transform 0.06s ease, box-shadow 0.06s ease, background-color 0.1s;
+            user-select: none;
+        }
+
+        .key-enter:hover:not(:disabled) {
+            background: #1D4ED8;
+        }
+
+        .key-enter:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 var(--sub2);
+        }
+
+        /* カウントダウンオーバーレイ */
+        .countdown-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 58, 138, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            color: var(--white);
+            font-size: 5rem;
+            font-weight: bold;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .countdown-overlay.active {
+            display: flex;
+        }
+
+        /* ===================================================
+           3. リザルト画面
+           =================================================== */
+        .result-header {
+            text-align: center;
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0.25rem auto 0.5rem;
+            color: var(--white);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .rank-S { background: linear-gradient(135deg, #F59E0B, #D97706); }
+        .rank-A { background: linear-gradient(135deg, #2563EB, #1E3A8A); }
+        .rank-B { background: linear-gradient(135deg, #10B981, #047857); }
+        .rank-C { background: linear-gradient(135deg, #6B7280, #4B5563); }
+
+        .result-score {
+            font-size: 2.4rem;
+            font-weight: bold;
+            color: var(--sub2);
+            margin: 0.25rem 0;
+        }
+
+        .new-record-tag {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--white);
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 0.2rem 0.7rem;
+            border-radius: 999px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.6rem;
+            margin: 1rem 0;
+        }
+
+        .stat-item {
+            background: #F3F4F6;
+            border-radius: 10px;
+            padding: 0.7rem 0.4rem;
+            text-align: center;
+        }
+
+        .stat-item-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .stat-item-val {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: var(--text);
+        }
+
+        .mistake-section {
+            margin-top: 1rem;
+            border-top: 1px solid #E5E7EB;
+            padding-top: 0.9rem;
+        }
+
+        .mistake-section h3 {
+            margin: 0 0 0.6rem;
+            font-size: 0.95rem;
+            color: var(--sub2);
+        }
+
+        .mistake-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .mistake-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            border-radius: 8px;
+            padding: 0.45rem 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .mistake-q {
+            font-weight: bold;
+            color: var(--sub2);
+        }
+
+        .mistake-a {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .mistake-user {
+            color: var(--accent);
+            font-size: 0.85rem;
+            margin-left: 0.4rem;
+        }
+
+        .result-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+
+        .btn-secondary {
+            min-height: 48px;
+            border-radius: 10px;
+            border: 2px solid var(--main);
+            background: var(--white);
+            color: var(--main);
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background: var(--sub1);
+        }
+
+        .btn-retry {
+            min-height: 48px;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        /* アニメーション */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        @keyframes pulse {
+            from { opacity: 1; }
+            to { opacity: 0.55; }
+        }
+
+        @media (max-width: 420px) {
+            .app-header h1 {
+                font-size: 1.05rem;
+            }
+            .panel {
+                padding: 1.1rem;
+            }
+            .segmented-grid.cols-3 {
+                gap: 0.4rem;
+            }
+            .select-btn {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="app-header-left">
+            <a href="../index.html" class="back-link">&larr; 一覧へ</a>
+            <h1>順列・組み合わせ タイムアタック</h1>
+        </div>
+        <button type="button" id="header-sound-btn" class="sound-toggle-btn" aria-label="サウンド切り替え">
+            🔊 ON
+        </button>
+    </header>
+
+    <main>
+        <!-- 1. タイトル／設定画面 -->
+        <section id="title-screen" class="screen active">
+            <div class="panel">
+                <div class="title-hero">
+                    <h2>基礎計算 120秒タイムアタック</h2>
+                    <p>順列（P）・組み合わせ（C）をテンキーで素早く計算しよう！</p>
+                </div>
+
+                <div class="option-group">
+                    <span class="option-label">出題モード</span>
+                    <div class="segmented-grid cols-3" id="mode-selector">
+                        <button type="button" class="select-btn selected" data-mode="mix">
+                            ミックス
+                            <small>P と C</small>
+                        </button>
+                        <button type="button" class="select-btn" data-mode="P">
+                            順列のみ
+                            <small>nPr</small>
+                        </button>
+                        <button type="button" class="select-btn" data-mode="C">
+                            組み合わせのみ
+                            <small>nCr</small>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="option-group">
+                    <span class="option-label">難易度</span>
+                    <div class="segmented-grid cols-2" id="diff-selector">
+                        <button type="button" class="select-btn selected" data-diff="easy">
+                            初級
+                            <small>n = 1〜5（基礎）</small>
+                        </button>
+                        <button type="button" class="select-btn" data-diff="normal">
+                            中級
+                            <small>n = 2〜9（標準）</small>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="best-score-box">
+                    <span>自己ベスト（選択中の設定）</span>
+                    <span class="best-score-value" id="title-best-score">0 点</span>
+                </div>
+
+                <button type="button" id="start-btn" class="btn start-btn">
+                    スタート（120秒）
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. ゲームプレイ画面 -->
+        <section id="play-screen" class="screen">
+            <div class="hud-wrapper">
+                <div class="hud-top">
+                    <div class="hud-stat">
+                        <span class="hud-stat-label">のこり時間</span>
+                        <span class="hud-stat-val hud-timer-val" id="hud-timer">120</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-stat-label">スコア</span>
+                        <span class="hud-stat-val" id="hud-score">0</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-stat-label">コンボ</span>
+                        <span class="combo-badge" id="hud-combo">0</span>
+                    </div>
+                    <div class="hud-controls">
+                        <button type="button" id="play-sound-btn" class="hud-icon-btn" aria-label="サウンド切り替え">🔊</button>
+                        <button type="button" id="quit-btn" class="hud-icon-btn">中断</button>
+                    </div>
+                </div>
+                <div class="time-bar-track">
+                    <div class="time-bar-fill" id="time-bar-fill"></div>
+                </div>
+            </div>
+
+            <div class="question-card" id="question-card">
+                <div class="feedback-toast" id="feedback-toast"></div>
+                <div class="math-expr" id="question-expr" aria-live="polite">
+                    <!-- 数式がJSで挿入される -->
+                </div>
+                <div class="answer-display-row">
+                    <span class="equals-sign">=</span>
+                    <div class="answer-box placeholder" id="answer-box">入力</div>
+                </div>
+            </div>
+
+            <div class="keypad-area">
+                <div class="keypad-grid" id="keypad-grid">
+                    <button type="button" class="key-btn" data-key="7">7</button>
+                    <button type="button" class="key-btn" data-key="8">8</button>
+                    <button type="button" class="key-btn" data-key="9">9</button>
+                    <button type="button" class="key-btn" data-key="4">4</button>
+                    <button type="button" class="key-btn" data-key="5">5</button>
+                    <button type="button" class="key-btn" data-key="6">6</button>
+                    <button type="button" class="key-btn" data-key="1">1</button>
+                    <button type="button" class="key-btn" data-key="2">2</button>
+                    <button type="button" class="key-btn" data-key="3">3</button>
+                    <button type="button" class="key-btn key-func" data-key="clear">C</button>
+                    <button type="button" class="key-btn" data-key="0">0</button>
+                    <button type="button" class="key-btn key-func" data-key="backspace">⌫</button>
+                </div>
+                <button type="button" class="key-enter" id="key-enter">決定（Enter）</button>
+            </div>
+        </section>
+
+        <!-- 3. リザルト画面 -->
+        <section id="result-screen" class="screen">
+            <div class="panel">
+                <div class="result-header">
+                    <div class="rank-badge rank-A" id="result-rank">A</div>
+                    <div id="new-record-tag" class="new-record-tag hidden">NEW RECORD!</div>
+                    <div class="result-score" id="result-score">0 点</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-item-label">正解数</span>
+                        <span class="stat-item-val" id="result-correct">0 / 0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-item-label">正答率</span>
+                        <span class="stat-item-val" id="result-accuracy">0%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-item-label">最大コンボ</span>
+                        <span class="stat-item-val" id="result-max-combo">0</span>
+                    </div>
+                </div>
+
+                <div class="mistake-section" id="mistake-section">
+                    <h3>間違えた問題</h3>
+                    <ul class="mistake-list" id="mistake-list"></ul>
+                </div>
+
+                <div class="result-actions">
+                    <button type="button" id="to-title-btn" class="btn-secondary">タイトルへ</button>
+                    <button type="button" id="retry-btn" class="btn btn-retry">もう一度</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- カウントダウンオーバーレイ -->
+    <div id="countdown-overlay" class="countdown-overlay">3</div>
+
+    <script>
+        (() => {
+            'use strict';
+
+            // ===================================================
+            // 定数・設定
+            // ===================================================
+            const TIME_LIMIT_SEC = 120;
+            const MAX_ANSWER_NORMAL = 2000;
+            const MAX_INPUT_LENGTH = 6;
+            const STORAGE_PREFIX = 'perm_comb_ta_v1_';
+
+            // ===================================================
+            // 状態管理
+            // ===================================================
+            const state = {
+                mode: 'mix',       // 'mix' | 'P' | 'C'
+                diff: 'easy',      // 'easy' | 'normal'
+                soundEnabled: true,
+                isPlaying: false,
+                isLocked: false,   // 不正解表示中の入力ロック
+                score: 0,
+                combo: 0,
+                maxCombo: 0,
+                correctCount: 0,
+                totalCount: 0,
+                mistakes: [],      // { exprText, answer, userAnswer }
+                currentQuestion: null,
+                lastQuestionKey: '',
+                inputStr: '',
+                endTimeMs: 0,
+                timerRafId: null,
+                countdownTimerId: null,
+                questionPool: []
+            };
+
+            // ===================================================
+            // DOM要素参照
+            // ===================================================
+            const el = {
+                titleScreen: document.getElementById('title-screen'),
+                playScreen: document.getElementById('play-screen'),
+                resultScreen: document.getElementById('result-screen'),
+                modeSelector: document.getElementById('mode-selector'),
+                diffSelector: document.getElementById('diff-selector'),
+                titleBestScore: document.getElementById('title-best-score'),
+                startBtn: document.getElementById('start-btn'),
+                headerSoundBtn: document.getElementById('header-sound-btn'),
+                playSoundBtn: document.getElementById('play-sound-btn'),
+                quitBtn: document.getElementById('quit-btn'),
+                hudTimer: document.getElementById('hud-timer'),
+                hudScore: document.getElementById('hud-score'),
+                hudCombo: document.getElementById('hud-combo'),
+                timeBarFill: document.getElementById('time-bar-fill'),
+                questionCard: document.getElementById('question-card'),
+                questionExpr: document.getElementById('question-expr'),
+                answerBox: document.getElementById('answer-box'),
+                feedbackToast: document.getElementById('feedback-toast'),
+                keypadGrid: document.getElementById('keypad-grid'),
+                keyEnter: document.getElementById('key-enter'),
+                countdownOverlay: document.getElementById('countdown-overlay'),
+                resultRank: document.getElementById('result-rank'),
+                newRecordTag: document.getElementById('new-record-tag'),
+                resultScore: document.getElementById('result-score'),
+                resultCorrect: document.getElementById('result-correct'),
+                resultAccuracy: document.getElementById('result-accuracy'),
+                resultMaxCombo: document.getElementById('result-max-combo'),
+                mistakeSection: document.getElementById('mistake-section'),
+                mistakeList: document.getElementById('mistake-list'),
+                toTitleBtn: document.getElementById('to-title-btn'),
+                retryBtn: document.getElementById('retry-btn')
+            };
+
+            // ===================================================
+            // Web Audio API シンセ効果音
+            // ===================================================
+            let audioCtx = null;
+
+            function ensureAudioContext() {
+                if (!state.soundEnabled) return null;
+                if (!audioCtx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) {
+                        audioCtx = new AudioCtx();
+                    }
+                }
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume().catch(() => {});
+                }
+                return audioCtx;
+            }
+
+            function playTone(freq, duration, type = 'sine', volume = 0.12, delay = 0) {
+                const ctx = ensureAudioContext();
+                if (!ctx) return;
+
+                const now = ctx.currentTime + delay;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, now);
+
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.exponentialRampToValueAtTime(volume, now + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + duration + 0.02);
+            }
+
+            function playSE(kind) {
+                if (!state.soundEnabled) return;
+                switch (kind) {
+                    case 'tap':
+                        playTone(620, 0.045, 'triangle', 0.08);
+                        break;
+                    case 'correct': {
+                        const pitchBoost = Math.min(state.combo, 15) * 18;
+                        playTone(587.33 + pitchBoost, 0.09, 'sine', 0.14, 0);
+                        playTone(880 + pitchBoost, 0.14, 'sine', 0.14, 0.06);
+                        break;
+                    }
+                    case 'wrong':
+                        playTone(190, 0.14, 'sawtooth', 0.1, 0);
+                        playTone(150, 0.18, 'sawtooth', 0.1, 0.09);
+                        break;
+                    case 'count':
+                        playTone(523.25, 0.09, 'sine', 0.12);
+                        break;
+                    case 'go':
+                        playTone(783.99, 0.18, 'sine', 0.15);
+                        break;
+                    case 'finish':
+                        playTone(523.25, 0.12, 'sine', 0.13, 0);
+                        playTone(659.25, 0.12, 'sine', 0.13, 0.1);
+                        playTone(783.99, 0.28, 'sine', 0.15, 0.2);
+                        break;
+                }
+            }
+
+            function updateSoundButtons() {
+                el.headerSoundBtn.textContent = state.soundEnabled ? '🔊 ON' : '🔇 OFF';
+                el.playSoundBtn.textContent = state.soundEnabled ? '🔊' : '🔇';
+            }
+
+            function toggleSound() {
+                state.soundEnabled = !state.soundEnabled;
+                updateSoundButtons();
+                if (state.soundEnabled) {
+                    playSE('tap');
+                }
+            }
+
+            // ===================================================
+            // 数学計算・問題プール生成
+            // ===================================================
+            function calcPerm(n, r) {
+                let res = 1;
+                for (let i = 0; i < r; i++) {
+                    res *= (n - i);
+                }
+                return res;
+            }
+
+            function calcComb(n, r) {
+                const k = Math.min(r, n - r);
+                let num = 1;
+                let den = 1;
+                for (let i = 1; i <= k; i++) {
+                    num *= (n - i + 1);
+                    den *= i;
+                }
+                return Math.round(num / den);
+            }
+
+            function buildQuestionPool(mode, diff) {
+                const pool = [];
+                const types = mode === 'mix' ? ['P', 'C'] : [mode];
+                const minN = diff === 'easy' ? 1 : 2;
+                const maxN = diff === 'easy' ? 5 : 9;
+
+                for (const type of types) {
+                    for (let n = minN; n <= maxN; n++) {
+                        for (let r = 0; r <= n; r++) {
+                            const ans = type === 'P' ? calcPerm(n, r) : calcComb(n, r);
+                            if (diff === 'normal' && ans > MAX_ANSWER_NORMAL) {
+                                continue;
+                            }
+                            pool.push({
+                                type,
+                                n,
+                                r,
+                                answer: ans,
+                                key: `${type}_${n}_${r}`
+                            });
+                        }
+                    }
+                }
+                return pool;
+            }
+
+            function pickNextQuestion() {
+                if (state.questionPool.length === 0) {
+                    state.questionPool = buildQuestionPool(state.mode, state.diff);
+                }
+                let candidate = null;
+                for (let i = 0; i < 10; i++) {
+                    const idx = Math.floor(Math.random() * state.questionPool.length);
+                    candidate = state.questionPool[idx];
+                    if (candidate.key !== state.lastQuestionKey || state.questionPool.length === 1) {
+                        break;
+                    }
+                }
+                state.lastQuestionKey = candidate.key;
+                state.currentQuestion = candidate;
+                renderQuestion(candidate);
+            }
+
+            function renderQuestion(q) {
+                el.questionExpr.innerHTML =
+                    `<span class="sub-left">${q.n}</span>` +
+                    `<span class="op">${q.type}</span>` +
+                    `<span class="sub-right">${q.r}</span>`;
+            }
+
+            // ===================================================
+            // ストレージ管理
+            // ===================================================
+            function getBestKey(mode, diff) {
+                return `${STORAGE_PREFIX}${mode}_${diff}`;
+            }
+
+            function loadBestScore(mode, diff) {
+                try {
+                    const raw = localStorage.getItem(getBestKey(mode, diff));
+                    return raw ? (JSON.parse(raw).score || 0) : 0;
+                } catch {
+                    return 0;
+                }
+            }
+
+            function saveBestScore(mode, diff, score) {
+                const prev = loadBestScore(mode, diff);
+                if (score > prev) {
+                    try {
+                        localStorage.setItem(getBestKey(mode, diff), JSON.stringify({ score }));
+                    } catch {
+                        // プライベートブラウジング等で保存不可の場合は無視
+                    }
+                    return true;
+                }
+                return false;
+            }
+
+            function updateTitleBestScore() {
+                const best = loadBestScore(state.mode, state.diff);
+                el.titleBestScore.textContent = `${best.toLocaleString()} 点`;
+            }
+
+            // ===================================================
+            // 画面切り替え
+            // ===================================================
+            function showScreen(screenName) {
+                el.titleScreen.classList.remove('active');
+                el.playScreen.classList.remove('active');
+                el.resultScreen.classList.remove('active');
+                document.body.classList.remove('is-playing');
+
+                if (screenName === 'title') {
+                    el.titleScreen.classList.add('active');
+                    updateTitleBestScore();
+                } else if (screenName === 'play') {
+                    el.playScreen.classList.add('active');
+                    document.body.classList.add('is-playing');
+                } else if (screenName === 'result') {
+                    el.resultScreen.classList.add('active');
+                }
+            }
+
+            // ===================================================
+            // ゲーム進行制御
+            // ===================================================
+            function startCountdown() {
+                ensureAudioContext();
+                state.questionPool = buildQuestionPool(state.mode, state.diff);
+                state.score = 0;
+                state.combo = 0;
+                state.maxCombo = 0;
+                state.correctCount = 0;
+                state.totalCount = 0;
+                state.mistakes = [];
+                state.lastQuestionKey = '';
+                state.inputStr = '';
+                state.isLocked = false;
+
+                updateHud(TIME_LIMIT_SEC);
+                renderInput();
+                showScreen('play');
+
+                let count = 3;
+                el.countdownOverlay.textContent = count;
+                el.countdownOverlay.classList.add('active');
+                playSE('count');
+
+                clearInterval(state.countdownTimerId);
+                state.countdownTimerId = setInterval(() => {
+                    count -= 1;
+                    if (count > 0) {
+                        el.countdownOverlay.textContent = count;
+                        playSE('count');
+                    } else if (count === 0) {
+                        el.countdownOverlay.textContent = 'GO!';
+                        playSE('go');
+                    } else {
+                        clearInterval(state.countdownTimerId);
+                        el.countdownOverlay.classList.remove('active');
+                        beginGame();
+                    }
+                }, 650);
+            }
+
+            function beginGame() {
+                state.isPlaying = true;
+                state.endTimeMs = performance.now() + TIME_LIMIT_SEC * 1000;
+                pickNextQuestion();
+                tickTimer();
+            }
+
+            function tickTimer() {
+                if (!state.isPlaying) return;
+                const remainingMs = Math.max(0, state.endTimeMs - performance.now());
+                const remainingSec = remainingMs / 1000;
+                updateHud(remainingSec);
+
+                if (remainingMs <= 0) {
+                    finishGame();
+                    return;
+                }
+                state.timerRafId = requestAnimationFrame(tickTimer);
+            }
+
+            function updateHud(remainingSec) {
+                const displaySec = Math.ceil(remainingSec);
+                el.hudTimer.textContent = displaySec;
+                const ratio = Math.max(0, Math.min(100, (remainingSec / TIME_LIMIT_SEC) * 100));
+                el.timeBarFill.style.width = `${ratio}%`;
+
+                const isUrgent = displaySec <= 15;
+                el.hudTimer.classList.toggle('urgent', isUrgent);
+                el.timeBarFill.classList.toggle('urgent', isUrgent);
+
+                el.hudScore.textContent = state.score.toLocaleString();
+                const mult = 1 + Math.floor(state.combo / 5) * 0.5;
+                el.hudCombo.textContent = state.combo >= 5 ? `${state.combo} (x${mult})` : `${state.combo}`;
+                el.hudCombo.classList.toggle('hot', state.combo >= 5);
+            }
+
+            function stopTimers() {
+                state.isPlaying = false;
+                clearInterval(state.countdownTimerId);
+                cancelAnimationFrame(state.timerRafId);
+                el.countdownOverlay.classList.remove('active');
+            }
+
+            function finishGame() {
+                stopTimers();
+                playSE('finish');
+                renderResult();
+                showScreen('result');
+            }
+
+            function quitGame() {
+                stopTimers();
+                showScreen('title');
+            }
+
+            // ===================================================
+            // 回答入力・判定
+            // ===================================================
+            function renderInput() {
+                if (state.inputStr === '') {
+                    el.answerBox.textContent = '入力';
+                    el.answerBox.classList.add('placeholder');
+                } else {
+                    el.answerBox.textContent = state.inputStr;
+                    el.answerBox.classList.remove('placeholder');
+                }
+            }
+
+            function handleKeyInput(key) {
+                if (!state.isPlaying || state.isLocked) return;
+
+                if (key === 'clear') {
+                    if (state.inputStr !== '') {
+                        state.inputStr = '';
+                        playSE('tap');
+                        renderInput();
+                    }
+                    return;
+                }
+
+                if (key === 'backspace') {
+                    if (state.inputStr.length > 0) {
+                        state.inputStr = state.inputStr.slice(0, -1);
+                        playSE('tap');
+                        renderInput();
+                    }
+                    return;
+                }
+
+                // 数字入力
+                if (/^[0-9]$/.test(key)) {
+                    if (state.inputStr.length >= MAX_INPUT_LENGTH) return;
+                    if (state.inputStr === '0') {
+                        state.inputStr = key;
+                    } else {
+                        state.inputStr += key;
+                    }
+                    playSE('tap');
+                    renderInput();
+                }
+            }
+
+            function submitAnswer() {
+                if (!state.isPlaying || state.isLocked) return;
+                if (state.inputStr === '') return;
+
+                const userVal = parseInt(state.inputStr, 10);
+                const q = state.currentQuestion;
+                state.totalCount += 1;
+
+                if (userVal === q.answer) {
+                    // 正解
+                    state.correctCount += 1;
+                    const mult = 1 + Math.floor(state.combo / 5) * 0.5;
+                    const gained = Math.round(100 * mult);
+                    state.score += gained;
+                    state.combo += 1;
+                    if (state.combo > state.maxCombo) {
+                        state.maxCombo = state.combo;
+                    }
+
+                    playSE('correct');
+                    showFeedback(true, `+${gained}`);
+
+                    el.hudCombo.classList.add('bump');
+                    setTimeout(() => el.hudCombo.classList.remove('bump'), 150);
+
+                    state.inputStr = '';
+                    renderInput();
+                    pickNextQuestion();
+                } else {
+                    // 不正解（コンボリセット＆正解を一瞬表示して次へ）
+                    state.combo = 0;
+                    state.mistakes.push({
+                        exprText: `${q.n}${q.type}${q.r}`,
+                        answer: q.answer,
+                        userAnswer: userVal
+                    });
+
+                    playSE('wrong');
+                    showFeedback(false, `正解: ${q.answer}`);
+                    state.isLocked = true;
+
+                    setTimeout(() => {
+                        state.isLocked = false;
+                        if (!state.isPlaying) return;
+                        state.inputStr = '';
+                        renderInput();
+                        pickNextQuestion();
+                    }, 600);
+                }
+            }
+
+            function showFeedback(isCorrect, text) {
+                el.questionCard.classList.remove('flash-correct', 'flash-wrong');
+                el.feedbackToast.classList.remove('show-correct', 'show-wrong');
+
+                // リフローでアニメーションを再トリガー
+                void el.questionCard.offsetWidth;
+
+                el.feedbackToast.textContent = text;
+                if (isCorrect) {
+                    el.questionCard.classList.add('flash-correct');
+                    el.feedbackToast.classList.add('show-correct');
+                } else {
+                    el.questionCard.classList.add('flash-wrong');
+                    el.feedbackToast.classList.add('show-wrong');
+                }
+
+                setTimeout(() => {
+                    el.questionCard.classList.remove('flash-correct', 'flash-wrong');
+                    el.feedbackToast.classList.remove('show-correct', 'show-wrong');
+                }, 450);
+            }
+
+            // ===================================================
+            // リザルト描画
+            // ===================================================
+            function calcRank(score) {
+                if (score >= 4000) return 'S';
+                if (score >= 2200) return 'A';
+                if (score >= 1000) return 'B';
+                return 'C';
+            }
+
+            function renderResult() {
+                const isNewRecord = saveBestScore(state.mode, state.diff, state.score);
+                const rank = calcRank(state.score);
+                const accuracy = state.totalCount > 0
+                    ? Math.round((state.correctCount / state.totalCount) * 100)
+                    : 0;
+
+                el.resultRank.textContent = rank;
+                el.resultRank.className = `rank-badge rank-${rank}`;
+                el.resultScore.textContent = `${state.score.toLocaleString()} 点`;
+                el.newRecordTag.classList.toggle('hidden', !isNewRecord || state.score === 0);
+
+                el.resultCorrect.textContent = `${state.correctCount} / ${state.totalCount}`;
+                el.resultAccuracy.textContent = `${accuracy}%`;
+                el.resultMaxCombo.textContent = `${state.maxCombo}`;
+
+                if (state.mistakes.length === 0) {
+                    el.mistakeSection.classList.add('hidden');
+                } else {
+                    el.mistakeSection.classList.remove('hidden');
+                    el.mistakeList.innerHTML = state.mistakes.map(m =>
+                        `<li class="mistake-item">` +
+                        `<span class="mistake-q">${m.exprText} ＝ <span class="mistake-a">${m.answer}</span></span>` +
+                        `<span class="mistake-user">あなたの回答: ${m.userAnswer}</span>` +
+                        `</li>`
+                    ).join('');
+                }
+            }
+
+            // ===================================================
+            // イベント登録
+            // ===================================================
+            el.modeSelector.addEventListener('click', (e) => {
+                const btn = e.target.closest('.select-btn');
+                if (!btn) return;
+                el.modeSelector.querySelectorAll('.select-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                state.mode = btn.dataset.mode;
+                playSE('tap');
+                updateTitleBestScore();
+            });
+
+            el.diffSelector.addEventListener('click', (e) => {
+                const btn = e.target.closest('.select-btn');
+                if (!btn) return;
+                el.diffSelector.querySelectorAll('.select-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                state.diff = btn.dataset.diff;
+                playSE('tap');
+                updateTitleBestScore();
+            });
+
+            el.headerSoundBtn.addEventListener('click', toggleSound);
+            el.playSoundBtn.addEventListener('click', toggleSound);
+            el.startBtn.addEventListener('click', startCountdown);
+            el.retryBtn.addEventListener('click', startCountdown);
+            el.quitBtn.addEventListener('click', quitGame);
+            el.toTitleBtn.addEventListener('click', () => showScreen('title'));
+
+            el.keypadGrid.addEventListener('click', (e) => {
+                const btn = e.target.closest('.key-btn');
+                if (!btn) return;
+                handleKeyInput(btn.dataset.key);
+            });
+
+            el.keyEnter.addEventListener('click', submitAnswer);
+
+            // PCキーボード操作対応
+            document.addEventListener('keydown', (e) => {
+                if (!state.isPlaying) return;
+
+                if (e.key >= '0' && e.key <= '9') {
+                    e.preventDefault();
+                    handleKeyInput(e.key);
+                } else if (e.key === 'Backspace') {
+                    e.preventDefault();
+                    handleKeyInput('backspace');
+                } else if (e.key === 'Escape' || e.key === 'Delete') {
+                    e.preventDefault();
+                    handleKeyInput('clear');
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitAnswer();
+                }
+            });
+
+            // 初期表示
+            updateSoundButtons();
+            updateTitleBestScore();
+        })();
+    </script>
+</body>
+</html>
