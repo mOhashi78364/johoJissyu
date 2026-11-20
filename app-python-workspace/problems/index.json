@@ -278,6 +278,17 @@
           "file": "chap05/q08.json"
         }
       ]
+    },
+    {
+      "chapterId": "chap06",
+      "chapterTitle": "Chap6 レポート課題",
+      "problems": [
+        {
+          "id": "c06_q01",
+          "title": "自由課題",
+          "file": "chap06/q01.json"
+        }
+      ]
     }
   ]
 }

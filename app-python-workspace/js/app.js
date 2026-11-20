@@ -298,6 +298,17 @@ const FALLBACK_PROBLEMS_INDEX = {
                     "file": "chap05/q08.json"
                 }
             ]
+        },
+        {
+            "chapterId": "chap06",
+            "chapterTitle": "Chap6 レポート課題",
+            "problems": [
+                {
+                    "id": "c06_q01",
+                    "title": "自由課題",
+                    "file": "chap06/q01.json"
+                }
+            ]
         }
     ]
 };
@@ -858,6 +869,17 @@ const FALLBACK_PROBLEM_FILES = {
         "title": "問8 発展：自由課題",
         "category": "第5章 関数と乱数",
         "chapter": "chap05",
+        "description": "特に指定はしないので自由にプログラムを作ってみてください。",
+        "template": "",
+        "template_py": "",
+        "hint_jp": "",
+        "hint_py": ""
+    },
+    "chap06/q01.json": {
+        "id": "c06_q01",
+        "title": "自由課題",
+        "category": "第6章 レポート課題",
+        "chapter": "chap06",
         "description": "特に指定はしないので自由にプログラムを作ってみてください。",
         "template": "",
         "template_py": "",
